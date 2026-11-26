@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#05060a">
+<meta name="description" content="المحقق المصري - لعبة ألغاز وتحقيق بوليسي باللهجة المصرية. الفصل الأول: اختفاء الصحفي. تطوير MIDO.">
+<title>المحقق المصري – THE DETECTIVE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#05060a; font-family:'Cairo',Tahoma,Arial,sans-serif; color:#e8e6df; }
+  .screen { position:fixed; inset:0; display:flex; flex-direction:column; }
+  .hidden { display:none !important; }
+  button { font-family:inherit; }
+
+  /* title */
+  #title { background:radial-gradient(ellipse at 50% 25%, #101a2e 0%, #05060a 70%); align-items:center; justify-content:center; z-index:100; }
+  .badge { font-size:13px; letter-spacing:4px; color:#c9a227; border:1px solid #c9a227; padding:4px 14px; border-radius:3px; margin-bottom:14px; }
+  #title h1 { font-size:42px; font-weight:900; color:#f5efe0; text-shadow:0 0 30px rgba(201,162,39,.5); }
+  #title h2 { font-size:15px; font-weight:400; color:#8fa3c8; letter-spacing:6px; margin:6px 0 30px; }
+  .mbtn { width:min(300px,80vw); margin:6px; padding:13px; font-size:19px; font-weight:700; color:#e8e6df;
+    background:linear-gradient(180deg, rgba(30,42,66,.9), rgba(14,20,34,.9)); border:1px solid #2e3d5c; border-radius:8px; cursor:pointer; }
+  .mbtn:active { border-color:#c9a227; }
+  .mbtn.gold { border-color:#c9a227; color:#ffd75e; }
+  .credit { position:absolute; bottom:16px; font-size:13px; color:#7c8698; }
+  .credit b { color:#c9a227; }
+
+  /* top bar */
+  #topbar { display:flex; align-items:center; gap:8px; padding:8px 10px; background:rgba(8,12,20,.92); border-bottom:1px solid #2e3d5c; z-index:30; }
+  #topbar .obj { flex:1; font-size:13px; line-height:1.4; }
+  #topbar .obj .lbl { color:#c9a227; font-size:10px; font-weight:700; }
+  #ptsVal { color:#ffd75e; font-weight:700; font-size:14px; white-space:nowrap; }
+  .tbtn { width:40px; height:40px; border-radius:9px; background:#141c2e; border:1px solid #2e3d5c; color:#e8e6df; font-size:17px; cursor:pointer; }
+
+  /* hub map */
+  #hub { background:#070a12; }
+  #hubCv { width:100%; height:100%; flex:1 1 0; min-height:0; display:block; touch-action:manipulation; }
+  .hubHint { text-align:center; color:#8fa3c8; font-size:13px; padding:8px; background:rgba(8,12,20,.92); }
+
+  /* scene */
+  #scene { background:#070a12; }
+  #sceneCv { width:100%; height:100%; flex:1 1 0; min-height:0; display:block; touch-action:manipulation; }
+  #sceneBar { padding:10px; background:rgba(8,12,20,.95); border-top:1px solid #2e3d5c; }
+  #sceneTitle { color:#c9a227; font-weight:900; font-size:17px; margin-bottom:8px; }
+  #sceneActions { display:flex; flex-wrap:wrap; gap:8px; }
+  .actBtn { padding:10px 14px; background:#1a2440; border:1px solid #3a4c74; color:#e8e6df; border-radius:10px; font-size:14px; cursor:pointer; }
+  .actBtn.gold { border-color:#c9a227; color:#ffd75e; }
+  .actBtn:active { background:#26375a; }
+  .actBtn .s { display:block; font-size:11px; color:#8fa3c8; }
+
+  /* dialogue */
+  #dlg { position:fixed; left:0; right:0; bottom:0; z-index:60; padding:12px; background:linear-gradient(180deg, transparent, rgba(3,5,10,.95) 22%); }
+  #dlgBox { max-width:760px; margin:0 auto; background:rgba(10,14,24,.96); border:1px solid #2e3d5c; border-radius:14px; padding:14px 16px; }
+  #dlgName { color:#c9a227; font-weight:900; font-size:16px; margin-bottom:4px; }
+  #dlgText { font-size:17px; line-height:1.8; min-height:50px; }
+  #dlgNext { margin-top:8px; float:left; background:none; border:1px solid #c9a227; color:#ffd75e; border-radius:8px; padding:6px 18px; font-size:14px; cursor:pointer; }
+  #dlgChoices { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .choice { background:rgba(26,36,58,.9); border:1px solid #3a4c74; color:#e8e6df; border-radius:10px; padding:11px 14px; font-size:15px; text-align:right; cursor:pointer; }
+  .choice:active { border-color:#c9a227; }
+
+  /* document/paper viewer */
+  #docWrap { position:fixed; inset:0; z-index:80; background:rgba(2,4,8,.88); display:flex; align-items:center; justify-content:center; padding:18px; }
+  #docPaper { background:linear-gradient(160deg,#efe6cf,#d9cba6); color:#2a2118; width:100%; max-width:420px; max-height:82vh; overflow-y:auto;
+    border-radius:4px; padding:22px 20px; box-shadow:0 18px 50px rgba(0,0,0,.7); position:relative; transform:rotate(-.6deg); }
+  #docPaper h3 { font-weight:900; border-bottom:2px solid #8a6f3a; padding-bottom:6px; margin-bottom:10px; font-size:18px; }
+  #docPaper .body { font-size:16px; line-height:2; white-space:pre-wrap; }
+  #docPaper .stamp { position:absolute; top:14px; left:14px; border:2px solid #a33; color:#a33; padding:2px 8px; border-radius:4px;
+    font-weight:900; font-size:12px; transform:rotate(8deg); opacity:.8; }
+  #docTake { display:block; margin:16px auto 0; padding:11px 30px; background:#c9a227; color:#111; font-weight:900; font-size:16px; border:none; border-radius:8px; cursor:pointer; }
+
+  /* panels */
+  .panel { position:fixed; inset:0; z-index:110; background:rgba(3,5,10,.94); display:flex; flex-direction:column; padding:14px; }
+  .panelHead { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .panelHead h3 { color:#c9a227; font-size:20px; font-weight:900; }
+  .closeX { background:none; border:1px solid #2e3d5c; color:#e8e6df; border-radius:8px; width:38px; height:38px; font-size:18px; cursor:pointer; }
+  .panelBody { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .clueCard { background:rgba(14,20,34,.9); border:1px solid #2e3d5c; border-radius:12px; padding:12px; margin-bottom:10px; display:flex; gap:12px; align-items:center; cursor:pointer; }
+  .clueIcon { width:52px; height:52px; border-radius:10px; background:#1a2440; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; border:1px solid #3a4c74; }
+  .clueCard h4 { color:#ffd75e; font-size:16px; }
+  .clueCard p { color:#b9c2d4; font-size:13px; line-height:1.6; }
+  .charCard { background:rgba(14,20,34,.9); border:1px solid #2e3d5c; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .charCard h4 { color:#ffd75e; }
+  .charCard p { color:#b9c2d4; font-size:13px; line-height:1.6; }
+  .setRow { display:flex; align-items:center; justify-content:space-between; background:rgba(14,20,34,.9); border:1px solid #2e3d5c;
+    border-radius:12px; padding:13px 14px; margin-bottom:10px; font-size:16px; }
+  .tgl { width:56px; height:30px; border-radius:15px; border:1px solid #3a4c74; background:#141c2e; position:relative; cursor:pointer; }
+  .tgl.on { background:#3a5a24; border-color:#7fb84a; }
+  .tgl::after { content:''; position:absolute; top:3px; right:4px; width:22px; height:22px; border-radius:50%; background:#e8e6df; transition:all .15s; }
+  .tgl.on::after { right:28px; background:#c8f0a0; }
+  .wideBtn { width:100%; margin-top:6px; padding:12px; font-size:16px; font-weight:700; background:#1a2440; color:#e8e6df; border:1px solid #3a4c74; border-radius:10px; cursor:pointer; }
+
+  /* board */
+  #boardArea { position:relative; flex:1; background:radial-gradient(circle at 50% 40%, #182033, #0a0e18); border:1px solid #2e3d5c; border-radius:12px; overflow:hidden; }
+  .bnode { position:absolute; transform:translate(50%,-50%); background:#141c2e; border:2px solid #3a4c74; border-radius:10px; padding:7px 9px;
+    font-size:12px; text-align:center; cursor:pointer; max-width:106px; line-height:1.4; z-index:2; }
+  .bnode.char { border-color:#7a4a9e; }
+  .bnode.sel { border-color:#ffd75e; box-shadow:0 0 14px rgba(255,215,94,.6); }
+  .bnode.linked { border-color:#7fb84a; }
+  #boardSvg { position:absolute; inset:0; width:100%; height:100%; z-index:1; }
+  #boardMsg { position:absolute; bottom:8px; right:8px; left:8px; text-align:center; color:#8fa3c8; font-size:13px; z-index:3; }
+
+  /* puzzles */
+  .puzMsg { text-align:center; margin-top:12px; font-size:15px; color:#ffd75e; min-height:24px; }
+  #fpWrap { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .fpBox { text-align:center; }
+  .fpBox canvas { background:#0d1320; border:1px solid #2e3d5c; border-radius:10px; max-width:44vw; }
+  .fpBox .cap { margin-top:6px; color:#8fa3c8; font-size:13px; }
+  #photoGrid { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-width:340px; margin:0 auto; }
+  .phPiece { border:2px solid #3a4c74; border-radius:6px; cursor:pointer; background:#0d1320; }
+  .phPiece.sel { border-color:#ffd75e; box-shadow:0 0 12px rgba(255,215,94,.55); }
+
+  /* ending */
+  #endScreen { background:radial-gradient(ellipse at 50% 30%, #1a1420 0%, #05060a 70%); align-items:center; justify-content:center; text-align:center; padding:20px; z-index:100; }
+  #endScreen h1 { color:#ffd75e; font-size:32px; font-weight:900; text-shadow:0 0 24px rgba(201,162,39,.6); }
+  #endScreen .stars { font-size:34px; margin:10px 0; }
+  #endScreen p { color:#b9c2d4; line-height:1.9; max-width:520px; }
+  #endScreen .stat { color:#e8e6df; font-size:16px; margin:4px 0; }
+
+  #toast { position:fixed; bottom:110px; left:50%; transform:translateX(-50%); background:rgba(8,12,20,.94); border:1px solid #c9a227;
+    color:#ffd75e; padding:10px 20px; border-radius:10px; font-size:15px; font-weight:700; z-index:90; text-align:center; max-width:86vw; pointer-events:none; }
+  @media (max-width:480px){ #title h1 { font-size:31px; } #dlgText { font-size:15px; } }
+
+  /* ===== document types ===== */
+  #docZoomBar { display:flex; gap:8px; justify-content:center; margin-bottom:10px; }
+  #docZoomBar button { width:44px; height:40px; border-radius:9px; background:#1a2440; border:1px solid #3a4c74; color:#e8e6df; font-size:19px; cursor:pointer; }
+  #docCmpBtn { width:auto !important; padding:0 16px !important; font-size:14px !important; color:#ffd75e !important; border-color:#c9a227 !important; }
+  #docScroll { max-height:74vh; overflow:auto; }
+  .drow { display:flex; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px dashed #b8a680; font-size:14px; }
+  .dk { color:#7a6335; font-weight:700; white-space:nowrap; }
+  .dv { text-align:left; font-weight:700; }
+  /* ID card */
+  .docid { background:#e9e2cc; border-radius:8px; overflow:hidden; font-size:13px; }
+  .didhead { background:#3f6a4a; color:#fff; text-align:center; padding:8px; font-weight:900; font-size:15px; line-height:1.5; }
+  .didbody { display:flex; gap:10px; padding:10px; }
+  .didphoto { width:88px; height:102px; border:2px solid #8a7a50; background:#cfd8c8; flex-shrink:0; }
+  .didfields { flex:1; }
+  .didfields .drow { font-size:11.5px; padding:3.5px 0; }
+  .didfoot { background:#d8cfae; text-align:center; padding:5px; font-size:11px; color:#7a6335; }
+  /* birth cert */
+  .doccert { border:3px double #8a6f3a; padding:12px; background:#f4eedd; position:relative; }
+  .dcerthead { text-align:center; font-weight:900; font-size:17px; color:#5a4a20; margin-bottom:10px; line-height:1.6; }
+  .dcertseal { position:absolute; bottom:12px; left:14px; width:66px; height:66px; border:3px solid #a33; border-radius:50%;
+    color:#a33; display:flex; align-items:center; justify-content:center; text-align:center; font-size:11px; font-weight:900;
+    transform:rotate(-14deg); opacity:.75; }
+  /* police report */
+  .docpolice { background:#f7f4ea; padding:6px 2px; font-size:14px; line-height:1.9; }
+  .dpolhead { text-align:center; font-weight:900; border-bottom:2px solid #333; padding-bottom:8px; margin-bottom:10px; line-height:1.6; }
+  .docpolice p { margin:8px 0; }
+  .dpolsign { margin-top:14px; text-align:left; font-weight:700; color:#333; }
+  /* newspaper */
+  .docnews { background:#f2f0ea; font-family:'Cairo',serif; }
+  .dnewshead { text-align:center; font-size:30px; font-weight:900; letter-spacing:2px; border-bottom:3px double #333; padding-bottom:4px; }
+  .dnewsdate { text-align:center; font-size:11px; color:#666; margin:4px 0 10px; }
+  .docnews h2 { font-size:19px; line-height:1.6; margin-bottom:8px; }
+  .dnewsbody { font-size:13px; line-height:2; column-gap:20px; margin:8px 0; }
+  /* receipt */
+  .docreceipt { background:#fdfcf6; font-size:13px; padding:6px; }
+  .drhead { text-align:center; font-weight:900; margin-bottom:6px; line-height:1.6; }
+  .drline { text-align:center; color:#999; margin:4px 0; }
+  .drnote { margin-top:8px; font-size:12px; color:#7a6335; }
+  .drsign { text-align:left; margin-top:10px; font-family:'Aref Ruqaa','Cairo',serif; font-size:19px; }
+  /* train ticket */
+  .docticket { background:linear-gradient(180deg,#f4e6c8,#e8d5a8); border:2px solid #8a6f3a; border-radius:6px; padding:10px; font-size:13px; }
+  .dthead { text-align:center; font-weight:900; font-size:16px; color:#1d4e89; margin-bottom:6px; }
+  .dtroute { text-align:center; font-weight:900; font-size:19px; margin:8px 0; background:#1d4e89; color:#fff; padding:6px; border-radius:4px; }
+  .dtserial { margin-top:8px; text-align:center; font-size:11px; color:#7a6335; border-top:1px dashed #8a6f3a; padding-top:6px; }
+  /* contract */
+  .doccontract { background:#f7f4ea; font-size:13.5px; line-height:1.9; }
+  .dchead { text-align:center; font-weight:900; font-size:18px; margin-bottom:10px; text-decoration:underline; }
+  .doccontract p { margin:7px 0; }
+  .dcsigns { display:flex; justify-content:space-between; margin-top:18px; color:#555; font-size:12px; }
+  .dcnote { margin-top:12px; color:#a33; font-family:'Aref Ruqaa','Cairo',serif; font-size:16px; }
+  /* handwritten */
+  .dochand { font-family:'Aref Ruqaa','Cairo',serif; font-size:21px; line-height:2.3; color:#2a2118;
+    background:repeating-linear-gradient(#efe6cf 0px, #efe6cf 46px, #c8b888 47px); padding:4px 2px; }
+  /* photo doc */
+  .docphoto img { display:block; }
+  .dphotocap { margin-top:8px; font-family:'Aref Ruqaa','Cairo',serif; font-size:16px; text-align:center; color:#2a2118; }
+  /* phone */
+  .docphone { background:#11151f; border-radius:14px; padding:14px; color:#e8e6df; }
+  .dphhead { text-align:center; color:#8fa3c8; font-size:12px; border-bottom:1px solid #2e3d5c; padding-bottom:8px; margin-bottom:12px; }
+  .dphin { background:#1f6a4a; border-radius:12px 12px 2px 12px; padding:10px 12px; font-size:15px; line-height:1.7; max-width:85%; }
+  .dphmeta { color:#5a6a88; font-size:11px; margin-top:6px; }
+  /* compare view */
+  #cmpWrap { position:fixed; inset:0; z-index:85; background:rgba(2,4,8,.94); display:flex; flex-direction:column; padding:10px; }
+  #cmpCols { flex:1; display:flex; gap:8px; overflow:hidden; }
+  .cmpCol { flex:1; overflow-y:auto; background:#efe6cf; border-radius:6px; padding:10px; color:#2a2118; font-size:12px; }
+  .cmpCol h4 { text-align:center; color:#7a6335; margin-bottom:8px; font-size:13px; }
+  .cmpCol .drow { font-size:11px; flex-wrap:wrap; }
+  .cmpCol .dk { white-space:normal; }
+  .cmpCol .dv { text-align:right; }
+  .cmpCol .didbody { flex-wrap:wrap; }
+  .cmpCol .didphoto { width:60px; height:70px; }
+  .cmpCol .didhead { font-size:12px; padding:5px; }
+  .cmpCol .didfoot { font-size:9px; }
+  .cmpCol .dochand { font-size:14px; background:none; }
+  .cmpCol .dnewshead { font-size:18px; }
+  .cmpCol .docnews h2 { font-size:13px; }
+  .cmpCol .dnewsbody { font-size:10.5px; }
+  .cmpCol .docpolice { font-size:11px; }
+  .cmpCol .dpolhead { font-size:11px; }
+  .cmpCol .dtroute { font-size:13px; }
+  .cmpCol .dcertseal { width:44px; height:44px; font-size:8px; }
+  #cmpClose { margin-top:8px; }
+
+  /* ===== المراحل والمستويات ===== */
+  #lvlChip { color:#8fa3c8; font-size:10px; font-weight:700; display:block; }
+  .lvlRow { display:flex; align-items:center; gap:12px; background:rgba(14,20,34,.9); border:1px solid #2e3d5c; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .lvlRow.done { border-color:#7fb84a; }
+  .lvlRow.cur { border-color:#c9a227; box-shadow:0 0 12px rgba(201,162,39,.25); }
+  .lvlIcon { width:46px; height:46px; border-radius:10px; background:#1a2440; display:flex; align-items:center; justify-content:center; font-size:23px; flex-shrink:0; border:1px solid #3a4c74; }
+  .lvlInfo { flex:1; }
+  .lvlInfo h4 { color:#ffd75e; font-size:15px; }
+  .lvlInfo p { color:#b9c2d4; font-size:12px; line-height:1.5; }
+  .lvlSt { color:#ffd75e; font-size:13px; white-space:nowrap; }
+  #levelsTotal { text-align:center; color:#c9a227; font-weight:700; margin-top:12px; font-size:15px; }
+  /* شاشة إتمام المستوى */
+  #lvlDone { position:fixed; inset:0; z-index:92; background:rgba(2,4,8,.82); display:flex; align-items:center; justify-content:center; padding:22px; }
+  #lvlDoneBox { background:linear-gradient(180deg,#141c2e,#0a0e18); border:2px solid #c9a227; border-radius:16px; padding:26px 22px; text-align:center; max-width:360px; width:100%; box-shadow:0 0 40px rgba(201,162,39,.3); }
+  #lvlDoneBox .badge { display:inline-block; margin-bottom:12px; }
+  #lvlDoneIcon { font-size:44px; margin:4px 0; }
+  #lvlDoneName { color:#f5efe0; font-size:20px; font-weight:900; }
+  #lvlDoneStars { font-size:32px; color:#ffd75e; margin:10px 0; letter-spacing:4px; text-shadow:0 0 16px rgba(255,215,94,.6); }
+  #lvlDoneInfo { color:#b9c2d4; font-size:14px; margin-bottom:16px; line-height:1.7; }
+  /* لغز الكود */
+  #codeDisp { text-align:center; font-size:38px; font-weight:900; letter-spacing:10px; color:#ffd75e; background:#0d1320; border:1px solid #3a4c74; border-radius:12px; padding:14px; margin:16px auto; max-width:280px; direction:ltr; }
+  #codeKeys { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-width:280px; margin:0 auto; direction:ltr; }
+  .codeKey { padding:16px 0; font-size:22px; font-weight:900; background:#1a2440; border:1px solid #3a4c74; color:#e8e6df; border-radius:12px; cursor:pointer; }
+  .codeKey:active { background:#26375a; border-color:#c9a227; }
+  .codeKey.clr { color:#ff9a7a; font-size:16px; }
+  .version { position:absolute; top:10px; left:12px; font-size:11px; color:#4a5878; }
+
+</style>
+</head>
+<body>
+
+<div id="title" class="screen">
+  <div class="badge">MIDO يقدّم</div>
+  <h1>المحقق المصري</h1>
+  <h2>THE DETECTIVE</h2>
+  <button class="mbtn gold" id="btnNew">🔎 ابدأ التحقيق</button>
+  <button class="mbtn" id="btnContinue">▶ متابعة اللعبة</button>
+  <button class="mbtn" id="btnLevelsT">🎯 المراحل</button>
+  <button class="mbtn" id="btnCases">📁 ملفات القضايا</button>
+  <button class="mbtn" id="btnChars">👥 الشخصيات</button>
+  <button class="mbtn" id="btnSettings">⚙ الإعدادات</button>
+  <div class="credit">تطوير <b>MIDO</b> — الفصل الأول: اختفاء الصحفي</div>
+  <div class="version">v1.0</div>
+</div>
+
+<div id="topbar" class="hidden">
+  <div class="obj"><div class="lbl">المهمة الحالية<span id="lvlChip"></span></div><div id="objText"></div></div>
+  <span id="ptsVal">⭐ 0</span>
+  <button class="tbtn" id="btnLevels" title="المراحل">🎯</button>
+  <button class="tbtn" id="btnNotes" title="دفتر الأدلة">📓</button>
+  <button class="tbtn" id="btnBoard" title="لوحة التحقيق">🧩</button>
+  <button class="tbtn" id="btnMenu" title="القائمة">☰</button>
+</div>
+
+<div id="hub" class="screen hidden">
+  <canvas id="hubCv"></canvas>
+  <div class="hubHint">اختار المكان اللي عايز تروحه من الخريطة</div>
+</div>
+
+<div id="scene" class="screen hidden">
+  <canvas id="sceneCv"></canvas>
+  <div id="sceneBar">
+    <div id="sceneTitle"></div>
+    <div id="sceneActions"></div>
+  </div>
+</div>
+
+<div id="dlg" class="hidden">
+  <div id="dlgBox">
+    <div id="dlgName"></div>
+    <div id="dlgText"></div>
+    <div id="dlgChoices"></div>
+    <button id="dlgNext">التالي ◀</button>
+  </div>
+</div>
+
+<div id="docWrap" class="hidden">
+  <div style="width:100%;max-width:430px;">
+    <div id="docZoomBar">
+      <button id="docZmOut">➖</button>
+      <button id="docZmIn">➕</button>
+      <button id="docCmpBtn">قارن مع مستند ⚖</button>
+    </div>
+    <div id="docScroll">
+      <div id="docPaper">
+        <div class="stamp hidden" id="docStamp">سري للغاية</div>
+        <h3 id="docTitle"></h3>
+        <div class="body" id="docBody"></div>
+      </div>
+    </div>
+    <button id="docTake" style="display:block;margin:10px auto 0;">خد الدليل 📎</button>
+  </div>
+</div>
+<div id="cmpWrap" class="hidden">
+  <div id="cmpCols"></div>
+  <button class="wideBtn" id="cmpClose">قفل المقارنة</button>
+</div>
+
+<div id="notesPanel" class="panel hidden">
+  <div class="panelHead"><h3>📓 دفتر الأدلة</h3><button class="closeX" data-close="notesPanel">✕</button></div>
+  <div class="panelBody" id="notesList"></div>
+</div>
+
+<div id="boardPanel" class="panel hidden">
+  <div class="panelHead"><h3>🧩 لوحة التحقيق</h3><button class="closeX" data-close="boardPanel">✕</button></div>
+  <div id="boardArea"><svg id="boardSvg"></svg><div id="boardMsg">اضغط على دليلين عشان تربطهم ببعض</div></div>
+</div>
+
+<div id="casesPanel" class="panel hidden">
+  <div class="panelHead"><h3>📁 ملفات القضايا</h3><button class="closeX" data-close="casesPanel">✕</button></div>
+  <div class="panelBody" id="casesList"></div>
+</div>
+
+<div id="charsPanel" class="panel hidden">
+  <div class="panelHead"><h3>👥 الشخصيات</h3><button class="closeX" data-close="charsPanel">✕</button></div>
+  <div class="panelBody" id="charsList"></div>
+</div>
+
+<div id="settingsPanel" class="panel hidden">
+  <div class="panelHead"><h3>⚙ الإعدادات</h3><button class="closeX" data-close="settingsPanel">✕</button></div>
+  <div class="panelBody">
+    <div class="setRow"><span>🎵 الموسيقى</span><div class="tgl on" id="tglMusic"></div></div>
+    <div class="setRow"><span>🔊 المؤثرات الصوتية</span><div class="tgl on" id="tglSound"></div></div>
+    <div class="setRow"><span>🗣 قراءة الحوار بصوت</span><div class="tgl on" id="tglVoice"></div></div>
+    <button class="wideBtn" id="btnSave">💾 حفظ يدوي</button>
+    <button class="wideBtn" id="btnReset">🗑 مسح التقدم والبدء من جديد</button>
+  </div>
+</div>
+
+<div id="fpPanel" class="panel hidden">
+  <div class="panelHead"><h3>🔬 تحليل البصمات</h3></div>
+  <div class="panelBody">
+    <p style="color:#b9c2d4;font-size:14px;margin-bottom:12px;line-height:1.7;">البصمة اللي على الشمال بتاعة يوسف (من ملفه). دوّر على نقط التطابق التلاتة في البصمة الغريبة واضغط عليها.</p>
+    <div id="fpWrap">
+      <div class="fpBox"><canvas id="fpA" width="220" height="280"></canvas><div class="cap">بصمة يوسف (مرجع)</div></div>
+      <div class="fpBox"><canvas id="fpB" width="220" height="280"></canvas><div class="cap">البصمة على الفنجان</div></div>
+    </div>
+    <div class="puzMsg" id="fpStatus"></div>
+  </div>
+</div>
+
+<div id="codePanel" class="panel hidden">
+  <div class="panelHead"><h3>🗄 درج المكتب</h3><button class="closeX" data-close="codePanel">✕</button></div>
+  <div class="panelBody">
+    <p style="color:#b9c2d4;font-size:14px;line-height:1.8;">الدرج مقفول بكود من 4 أرقام. على الدرج ورقة ملزوقة بخط يوسف مكتوب عليها: <b style="color:#ffd75e;">«مفتاحي سنة ميلادي»</b></p>
+    <div id="codeDisp">﹍ ﹍ ﹍ ﹍</div>
+    <div id="codeKeys"></div>
+    <div class="puzMsg" id="codeStatus"></div>
+  </div>
+</div>
+
+<div id="levelsPanel" class="panel hidden">
+  <div class="panelHead"><h3>🎯 مراحل الفصل الأول</h3><button class="closeX" data-close="levelsPanel">✕</button></div>
+  <div class="panelBody">
+    <div id="levelsList"></div>
+    <div id="levelsTotal"></div>
+  </div>
+</div>
+
+<div id="lvlDone" class="hidden">
+  <div id="lvlDoneBox">
+    <div class="badge">✅ المستوى اكتمل</div>
+    <div id="lvlDoneIcon"></div>
+    <div id="lvlDoneName"></div>
+    <div id="lvlDoneStars"></div>
+    <div id="lvlDoneInfo"></div>
+    <button class="mbtn gold" id="lvlDoneBtn">كمّل التحقيق ◀</button>
+  </div>
+</div>
+
+<div id="photoPanel" class="panel hidden">
+  <div class="panelHead"><h3>🖼 ركّب الصورة الممزقة</h3></div>
+  <div class="panelBody">
+    <p style="color:#b9c2d4;font-size:14px;margin-bottom:12px;line-height:1.7;">الصورة متقطعة 4 قطع. اضغط على قطعتين عشان تبدلهم لحد ما الصورة ترجع صح.</p>
+    <div id="photoGrid"></div>
+    <div class="puzMsg" id="phStatus"></div>
+  </div>
+</div>
+
+<div id="endScreen" class="screen hidden">
+  <div class="badge">نهاية الفصل الأول</div>
+  <h1>القضية لسه في أولها...</h1>
+  <div class="stars" id="endStars"></div>
+  <p id="endStory"></p>
+  <div style="margin:18px 0;">
+    <div class="stat" id="endClues"></div>
+    <div class="stat" id="endPts"></div>
+    <div class="stat" id="endRank"></div>
+  </div>
+  <p style="color:#c9a227;font-weight:700;">الفصل التاني: طريق الإسكندرية — قريبًا</p>
+  <button class="mbtn gold" id="btnEndMenu" style="margin-top:20px;">القائمة الرئيسية</button>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script>// ===== المحقق المصري - نسخة الأوراق والألغاز (بدون مشي) - core =====
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const SAVE_KEY = 'detective_mido_papers_ch1';
+
+const G = {
+  pts:0, clues:[], met:[], links:[], flags:{}, obj:0,
+  settings:{sound:true, voice:true, music:true},
+  started:false, ended:false, place:'hub',
+  levelsDone:[], levelStars:{}, mistakes:0, levelStartPts:0,
+};
+
+const APT_CLUES = ['notebook','idcard','birthcert','photo','mobile','paper'];
+const REQ_APT = ['notebook','photo','mobile','cup','paper','idcard']; // مطلوبين لإنهاء المستوى 1
+
+// مراحل الفصل الأول (7 مستويات)
+const LEVELS = [
+  {name:'شقة الصحفي المختفي', short:'الشقة', icon:'🔍', desc:'دوّر على أدلة في شقة يوسف النجار'},
+  {name:'بصمة الفنجان', short:'البصمة', icon:'🖐', desc:'حلّل البصمة الغريبة على الفنجان'},
+  {name:'استجواب عم رجب', short:'الاستجواب', icon:'☕', desc:'اسأل صاحب القهوة عن يوسف'},
+  {name:'لوحة التحقيق', short:'الربط', icon:'🧩', desc:'اربط الأدلة ببعضها على اللوحة'},
+  {name:'المواجهة', short:'المواجهة', icon:'⚠', desc:'واجه عم رجب بالتناقض'},
+  {name:'الملف الأحمر', short:'مريم', icon:'📰', desc:'كلم مريم الصحفية عن الملف'},
+  {name:'التقرير النهائي', short:'القسم', icon:'🚔', desc:'ارجع للعقيد شريف بالتقرير'},
+];
+function curLevel(){ return G.obj<=1 ? 1 : Math.min(7, G.obj); }
+function mistake(){ G.mistakes++; save(); }
+
+// شاشة إتمام المستوى
+let lvlQ=[];
+function completeLevel(n){
+  if(!LEVELS[n-1] || G.levelsDone.includes(n)) return;
+  G.levelsDone.push(n);
+  const stars = G.mistakes===0 ? 3 : (G.mistakes<=2 ? 2 : 1);
+  G.levelStars[n]=stars;
+  const delta = G.pts - (G.levelStartPts||0);
+  G.mistakes=0; G.levelStartPts=G.pts; save();
+  Music.sting('victory');
+  if(n<7){ lvlQ.push({n, stars, delta}); tryShowLevelDone(0); } // المستوى الأخير شاشة النهاية هي مكافأته
+}
+function flushLevelQueue(){ lvlQ=[]; $('lvlDone').classList.add('hidden'); }
+function tryShowLevelDone(tries){
+  if(!lvlQ.length) return;
+  if(tries>40){ lvlQ=[]; return; }
+  const busy = DLG || !$('docWrap').classList.contains('hidden')
+    || !$('cmpWrap').classList.contains('hidden')
+    || !$('endScreen').classList.contains('hidden')
+    || !$('title').classList.contains('hidden')
+    || document.querySelector('.panel:not(.hidden)')
+    || !$('lvlDone').classList.contains('hidden');
+  if(busy){ setTimeout(()=>tryShowLevelDone(tries+1), 800); return; }
+  const it=lvlQ.shift(); const L=LEVELS[it.n-1];
+  $('lvlDoneIcon').textContent=L.icon;
+  $('lvlDoneName').textContent='المستوى '+it.n+' من 7: '+L.name;
+  $('lvlDoneStars').textContent='★'.repeat(it.stars)+'☆'.repeat(3-it.stars);
+  $('lvlDoneInfo').textContent='نقاط المستوى: +'+it.delta+' ⭐ — تقدمك: '+G.levelsDone.length+'/7 مستويات';
+  $('lvlDone').classList.remove('hidden');
+}
+const OBJECTIVES = [
+  'روح شقة يوسف النجار في عمارة النور (من الخريطة)',
+  'دوّر على أدلة في شقة يوسف (0/6)',
+  'حلّل البصمة اللي على الفنجان (من دفتر الأدلة)',
+  'روح قهوة عم رجب واسأله عن يوسف',
+  'اربط الأدلة على لوحة التحقيق (🧩 فوق)',
+  'واجه عم رجب بالتناقض اللي لقيته',
+  'كلم مريم الصحفية (من الخريطة)',
+  'روح قسم الشرطة للعقيد شريف',
+];
+
+const CLUES = {
+  notebook:{icon:'📓', name:'دفتر يوسف', title:'دفتر ملاحظات يوسف', stamp:'سري',
+    body:'آخر صفحة في الدفتر:\n\n"لو حصلي حاجة، الملف الأحمر هو اللي ورا كل ده. المخازن مش بتفرّغ سجاد قديم... بتفرّغ أسرار."\n\nوباقي الصفحات مليانة أسماء وتواريخ شطب عليها.',
+    desc:'آخر صفحة: "لو حصلي حاجة، الملف الأحمر هو اللي ورا كل ده."'},
+  photo:{icon:'🖼', name:'صورة ممزقة', title:'صورة بعد تركيبها', stamp:'دليل',
+    body:'الصورة بعد ما ركبتها: يوسف واقف قدام بوابة مخزن قديم عليها رقم 14، وجنبه راجل ملامحه مش واضحة.\n\nعلى ضهر الصورة مكتوب: "المنتزه - قبل الاختفاء بيوم".',
+    desc:'يوسف قدام مخزن قديم، وعلى ضهرها تاريخ من قبل الاختفاء بيوم.'},
+  mobile:{icon:'📱', name:'موبايل يوسف', title:'آخر رسالة على الموبايل', stamp:'دليل',
+    body:'رسالة من رقم مجهول:\n\n"مكانك المعتاد بكرة بالليل. هات الملف ومتتأخرش."\n\nمافيش رد من يوسف. الرقم مقفول ومش متسجل.',
+    desc:'آخر رسالة من رقم مجهول: "مكانك المعتاد بكرة بالليل. هات الملف."'},
+  cup:{icon:'☕', name:'فنجان قهوة', title:'محضر معاينة مبدئي', stamp:'معاينة',
+    body:'فنجان على المكتب، لسه فيه بقايا قهوة باللبن.\n\nملاحظة مهمة: يوسف النجار مبيشربش قهوة باللبن خالص (حسب أقوال المحيطين بيه).\n\nفيه بصمة واضحة على الفنجان محتاجة تحليل.',
+    desc:'فنجان فيه بقايا قهوة باللبن، عليه بصمة. يوسف مبيشربش باللبن!'},
+  paper:{icon:'📄', name:'ورقة مكرمشة', title:'ورقة من سلة المهملات', stamp:'دليل',
+    body:'ورقة مكرمشة مرمية في السلة، مكتوب عليها بخط بسرعة:\n\n"مخازن المنتزه - إسكندرية\nالخميس بعد نص الليل\nمتتأخرش"',
+    desc:'مكتوب فيها: "مخازن المنتزه - إسكندرية. الخميس بعد نص الليل".'},
+  print:{icon:'🖐', name:'نتيجة البصمة', title:'تقرير تحليل البصمة', stamp:'مختبر',
+    body:'نتيجة المطابقة: البصمة المرفوعة من الفنجان لا تطابق بصمة يوسف النجار.\n\nالخلاصة: في شخص تاني كان في الشقة ليلة الاختفاء، وشرب قهوة بهدوء قبل ما يوسف يختفي.',
+    desc:'البصمة اللي على الفنجان مش بتاعة يوسف. في حد تاني كان في الشقة.'},
+  statement:{icon:'🗣', name:'أقوال عم رجب', title:'محضر أقوال شاهد', stamp:'شهادة',
+    body:'الشاهد: رجب (صاحب القهوة).\n\nالأقوال: "ماشفتش يوسف من يومين تقريبًا."\n\nملاحظة المحقق: الراجل كان متوتر وعينيه بتتهرب وهو بيتكلم.',
+    desc:'عم رجب قال إنه ماشفش يوسف من يومين... بس عينيه كانت بتتهرب.'},
+  contra:{icon:'⚠', name:'تناقض أقوال عم رجب', title:'مذكرة تناقض', stamp:'مهم',
+    body:'التناقض:\n\nعم رجب بيقول "ماشفتش يوسف من يومين"... بس رسالة المجهول بتقول "مكانك المعتاد بكرة بالليل" — والمكان المعتاد هو قهوة عم رجب نفسها، اللي يوسف بياخد منها قهوته كل ليلة الساعة 11.\n\nيعني عم رجب شاف يوسف ليلة الاختفاء. ليه بيكدب؟',
+    desc:'عم رجب قال ماشفهوش، بس يوسف كان في القهوة ليلة الاختفاء. في تناقض!'},
+  place:{icon:'📍', name:'مكان الاختفاء المحتمل', title:'مذكرة استنتاج', stamp:'استنتاج',
+    body:'الصورة الممزقة + ورقة المخازن:\n\nيوسف كان بيراقب مخازن المنتزه في إسكندرية قبل ما يختفي بيوم. المخزن رقم 14 في الصورة هو نفسه المكتوب في الورقة.\n\nالاختفاء مرتبط بالمخازن دي.',
+    desc:'يوسف كان بيراقب مخازن المنتزه في إسكندرية قبل ما يختفي.'},
+  idcard:{icon:'🪪', name:'بطاقة يوسف', desc:'بطاقة الرقم القومي بتاعة يوسف. محل الميلاد: الإسكندرية.'},
+  birthcert:{icon:'📜', name:'شهادة ميلاد يوسف', desc:'شهادة ميلاد صادرة من قسم المنتزه - الإسكندرية سنة 1988.'},
+  receipt:{icon:'🧾', name:'إيصال قهوة عم رجب', desc:'حساب ليلة الاختفاء: 2 قهوة سادة الساعة 11:05 مساءً. "يوسف + ضيف".'},
+  newsclip:{icon:'📰', name:'قصاصة جريدة صوت مصر', desc:'تحقيق يوسف: "مخازن المنتزه بلا رقيب: أين تذهب البضاعة؟"'},
+  ticket:{icon:'🎫', name:'تذكرة قطار إسكندرية', desc:'تذكرة القاهرة → إسكندرية ليلة الخميس 11:45م. مش مستخدمة!'},
+  report:{icon:'🚔', name:'محضر بلاغ اختفاء', desc:'محضر أحوال رقم 4572 قسم شرطة قصر النيل: بلاغ مريم عن اختفاء يوسف.'},
+  contract:{icon:'📑', name:'عقد إيجار مخزن 14', desc:'مخزن 14 المنتزه مؤجر لشركة "النور للاستيراد" — مريم شاككة إنها وهمية.'},
+};
+
+const CHARS = {
+  adam:{name:'آدم منصور', desc:'محقق شاب في قسم التحقيقات الجنائية. ذكي وعنيد، وبيثق في إحساسه أكتر من التقارير.'},
+  youssef:{name:'يوسف النجار', desc:'صحفي استقصائي مختفي من 3 أيام. كان شغال على ملف خطير عن قضايا قديمة متدفنة.'},
+  sharif:{name:'العقيد شريف', desc:'رئيس قسم التحقيقات. راجل جامد بس عادل، وشايف في آدم مستقبل القسم.'},
+  ragab:{name:'عم رجب', desc:'صاحب القهوة تحت عمارة النور. عارف كل أسرار المنطقة، بس لسانه تقيل لو ماحسش بالأمان.'},
+  maryam:{name:'مريم', desc:'صحفية وصديقة يوسف. بتساعد آدم من بره القسم لأنها عارفة الملف اللي كان شغال عليه.'},
+  salem:{name:'سليم', desc:'صديق آدم من الطفولة، بيشتغل في التحليل الجنائي وبيعمل له تحاليل على جنب.'},
+};
+
+// audio
+let AC=null;
+function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(AC && AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+function tone(f,d,type,g,when){ const ac=audio(); if(!ac||!G.settings.sound) return;
+  const o=ac.createOscillator(), v=ac.createGain(); o.type=type||'sine'; o.frequency.value=f;
+  const t=ac.currentTime+(when||0); v.gain.setValueAtTime(0.0001,t); v.gain.linearRampToValueAtTime(g||0.12,t+0.02);
+  v.gain.exponentialRampToValueAtTime(0.0001,t+d); o.connect(v).connect(ac.destination); o.start(t); o.stop(t+d+0.05); }
+function sfx(k){ if(!G.settings.sound) return;
+  if(k==='click') tone(660,0.08,'square',0.05);
+  else if(k==='clue'){ tone(523,0.15,'sine',0.12); tone(784,0.25,'sine',0.12,0.12); }
+  else if(k==='good'){ [523,659,784,1046].forEach((f,i)=>tone(f,0.3,'triangle',0.1,i*0.11)); }
+  else if(k==='bad'){ tone(220,0.3,'sawtooth',0.08); tone(196,0.4,'sawtooth',0.08,0.15); } }
+
+function speak(t){ if(!G.settings.voice||!window.speechSynthesis) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang='ar-EG'; speechSynthesis.speak(u); }catch(e){} }
+
+// save
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify({pts:G.pts,clues:G.clues,met:G.met,links:G.links,flags:G.flags,obj:G.obj,ended:G.ended,place:G.place,settings:G.settings,levelsDone:G.levelsDone,levelStars:G.levelStars,mistakes:G.mistakes,levelStartPts:G.levelStartPts})); }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); if(s){ Object.assign(G,{pts:s.pts||0,clues:s.clues||[],met:s.met||[],links:s.links||[],flags:s.flags||{},obj:s.obj||0,ended:!!s.ended,place:s.place||'hub',settings:Object.assign(G.settings,s.settings||{}),levelsDone:s.levelsDone||[],levelStars:s.levelStars||{},mistakes:s.mistakes||0,levelStartPts:s.levelStartPts||0}); return true; } }catch(e){} return false; }
+
+// helpers
+function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.add('hidden'), ms||2600); }
+function addPts(n){ G.pts+=n; $('ptsVal').textContent='⭐ '+G.pts; save(); }
+function addClue(id){ if(G.clues.includes(id)) return; G.clues.push(id); save(); sfx('clue');
+  toast('🔎 دليل جديد: '+CLUES[id].name); renderNotes(); }
+function addMet(id){ if(G.met.includes(id)) return; G.met.push(id); save(); renderChars(); }
+function setObj(i){ const prev=G.obj; G.obj=i; save();
+  let txt=OBJECTIVES[i]||'';
+  if(i===1){ const n=G.clues.filter(c=>REQ_APT.includes(c)).length;
+    txt='دوّر على أدلة في شقة يوسف ('+n+'/6)'; }
+  $('objText').textContent=txt;
+  const lv=curLevel(); const L=LEVELS[lv-1];
+  $('lvlChip').textContent='المستوى '+lv+'/7: '+L.short;
+  if(i>=2 && i>prev) completeLevel(i-1); }
+const S_INTRO=[
+  {n:'', t:'القاهرة - وسط البلد. الساعة 11 بالليل. الصحفي يوسف النجار مختفي من 3 أيام.'},
+  {n:'العقيد شريف (تليفون)', t:'آدم؟ صاحي يا ابني؟ عندنا قضية وعايزك أنت بالذات فيها.'},
+  {n:'آدم', t:'قضية إيه يا فندم؟'},
+  {n:'العقيد شريف', t:'الصحفي يوسف النجار. مختفي من 3 أيام، ومحدش عارف عنه حاجة. كان شغال على تحقيق صحفي كبير... وده اللي مخليني قلقان.'},
+  {n:'آدم', t:'تحقيق عن إيه؟'},
+  {n:'العقيد شريف', t:'محدش يعرف بالظبط. آخر حاجة قالها لزمايله إنه "لاقي خيط يفك ملفات قديمة متقفلة". روح شقته في عمارة النور، شارع قصر النيل، ودور كويس.'},
+  {n:'آدم', t:'حاضر يا فندم. أنا في الطريق.'},
+  {n:'العقيد شريف', t:'ويا آدم... خد بالك. اللي يخلي صحفي زي ده يختفي، ميخافش من حاجة.'},
+];
+const S_RAGAB1=[
+  {n:'عم رجب', t:'أهلين يا باشا! قهوة ولا شاي؟ القهوة عندي تفتح النفس.'},
+  {n:'آدم', t:'بعد إذنك يا عم رجب، أنا المحقق آدم منصور. بسأل عن يوسف النجار، ساكن العمارة اللي فوق.'},
+  {n:'عم رجب', t:'يوسف؟! خير؟ حصله حاجة؟ ده زبون قديم، بياخد قهوته من عندي كل يوم الساعة 11 بالليل زي الساعة.'},
+  {n:'آدم', t:'اختيار السؤال:', choices:[
+    {t:'شفته آخر مرة امتى؟', goto:4},
+    {t:'كان بيشرب قهوة إيه بالظبط؟', goto:5},
+    {t:'لاحظت حاجة غريبة الفترة اللي فاتت؟', goto:6},
+  ]},
+  {n:'عم رجب', t:'والله يا باشا... ماشفهوش من يومين تقريبًا. آه من يومين كده.', jmp:7, do:()=>{ G.flags.r1a=true; }},
+  {n:'عم رجب', t:'سادة يا باشا، مظبوطة مزبوطة. يوسف مبيمسكش اللبن خالص في قهوته. عمره ما طلب قهوة باللبن.', jmp:7, do:()=>{ G.flags.r1b=true; }, pts:5},
+  {n:'عم رجب', t:'غريبة؟ لأ والله... كل حاجة زي الفول. بس يعني... الناس بتعدي وتيجي، ومبهزرش، القهوة مليانة زي كل ليلة.', jmp:7, do:()=>{ G.flags.r1c=true; }},
+  {n:'آدم', t:'طب لو فتكرت أي حاجة، أنا هعدي تاني. أمرك يا عم رجب.'},
+  {n:'عم رجب', t:'تحت أمرك يا باشا. ربنا يسترها على يوسف، ده ابن ناس كويسة.'},
+];
+const S_RAGAB2=[
+  {n:'آدم', t:'عم رجب... استنى يا أستاذ، أنا لسه مخلصتش كلامي معاك.'},
+  {n:'عم رجب', t:'خير يا باشا؟'},
+  {n:'آدم', t:'أنت قولتلي ماشفتش يوسف من يومين. صح؟'},
+  {n:'عم رجب', t:'أيوه... يعني أهو اللي فاكره.'},
+  {n:'آدم', t:'طب بص في الورقة دي كويس. ده حساب القهوة عندك ليلة الاختفاء... "قهوة يوسف الساعة 11" زي كل ليلة. الكلام ده أنت اللي كاتبه؟'},
+  {n:'عم رجب', t:'إيه ده؟! الورقة دي جتلك منين يا باشا؟!'},
+  {n:'آدم', t:'يعني شفته الليلة دي. ليه كدبت عليا يا عم رجب؟', choices:[
+    {t:'(بهدوء) أنا مش ضدك... ساعدني أساعدك', goto:7},
+    {t:'(بحدّة) الكدب ده ممكن يوديك القسم', goto:8},
+  ]},
+  {n:'عم رجب', t:'والله يا باشا أنا قولتلك كل اللي أعرفه! بس... أنا خايف. الراجل اللي كان مستنيه بره، عينيه مكانتش عينية خالص.', jmp:9},
+  {n:'آدم', t:'راجل إيه؟ ركز معايا.'},
+  {n:'عم رجب', t:'الليلة دي يوسف جه، شرب قهوته واقف، وكان مرعوب. بعدها ركب عربية نقل بيضا كانت واقفة في آخر الشارع. وأنا دخلت قفلت على طول... سامحني يا باشا.', do:()=>{ G.flags.ragabConfessed=true; }, pts:15},
+  {n:'آدم', t:'عربية نقل بيضا... تمام يا عم رجب. اللي قولته ده مهم جدًا.'},
+];
+const S_MARYAM=[
+  {n:'', t:'بتتصل بمريم، صديقة يوسف وزميلته في الجريدة.'},
+  {n:'مريم', t:'ألو؟ نعم، مين معايا؟'},
+  {n:'آدم', t:'المحقق آدم منصور. بحقق في اختفاء يوسف النجار.'},
+  {n:'مريم', t:'أخيرًا حد بيتحرك! أنا كنت متأكدة إن اللي حصله مش طبيعي. يوسف كان خايف الأسبوع اللي فات، قاللي "لو حصلي حاجة، الملف الأحمر".'},
+  {n:'آدم', t:'الملف الأحمر ده إيه؟'},
+  {n:'مريم', t:'تحقيق عن مخازن قديمة في إسكندرية، منطقة المنتزه. فيها بضاعة بتدخل من غير ورق، ووراها ناس كبيرة أوي. يوسف كان نازل يصور هناك قبل ما يختفي بيوم.'},
+  {n:'آدم', t:'مخازن المنتزه... طب هل في حد كان مهدده؟'},
+  {n:'مريم', t:'كان بيوصله تهديدات على تليفون تاني، مش اللي معاه. بس يوسف عنيد، ماكانش هيسكت. لو لقيته، قوله مريم ماشية على الخطة زي ما اتفقنا.'},
+  {n:'آدم', t:'شكرًا يا مريم. لو احتجتك هكلمك تاني.'},
+];
+const S_SHARIF_END=[
+  {n:'العقيد شريف', t:'اتفضل يا آدم. عندك خبر؟'},
+  {n:'آدم', t:'يا فندم، يوسف النجار اتخطف. كان بيحقق في مخازن المنتزه في إسكندرية، وآخر ليلة شافه عم رجب ركب عربية نقل بيضا غصب عنه.'},
+  {n:'العقيد شريف', t:'مخازن المنتزه... طب استنى. ده مش اسم عادي. ده مربوط بقضية قديمة اتقفلت من سنين.'},
+  {n:'آدم', t:'قضية إيه يا فندم؟'},
+  {n:'العقيد شريف', t:'مش هنا يا ابني. الحيطان ليها ودان. امشِ من هنا، وروح جهز شنطتك... إنت مسافر إسكندرية يا آدم.'},
+  {n:'آدم', t:'(في سره) إسكندرية... يا ترى إنت فين يا يوسف؟'},
+];
+// ===== المستندات المصرية (كل البيانات خيالية 100%) =====
+function portraitCanvas(seedName){
+  const cv=document.createElement('canvas'); cv.width=120; cv.height=140;
+  const x=cv.getContext('2d');
+  x.fillStyle='#cfd8c8'; x.fillRect(0,0,120,140);
+  x.fillStyle='#2a3a5c'; x.fillRect(0,110,120,30); // shirt
+  x.fillStyle='#c8996a'; x.fillRect(42,88,36,30); // neck
+  x.beginPath(); x.arc(60,62,36,0,Math.PI*2); x.fill(); // face
+  x.fillStyle='#1c1c22'; x.beginPath(); x.arc(60,38,36,Math.PI,0); x.fill(); // hair
+  x.fillRect(24,38,10,26); x.fillRect(86,38,10,26);
+  x.fillStyle='#1c1c22'; x.beginPath(); x.arc(46,62,4,0,Math.PI*2); x.arc(74,62,4,0,Math.PI*2); x.fill(); // eyes
+  x.strokeStyle='#8a5a3a'; x.lineWidth=3; x.beginPath(); x.arc(60,76,12,0.2,Math.PI-0.2); x.stroke(); // mouth
+  return cv.toDataURL();
+}
+function fieldRow(k,v){ return '<div class="drow"><span class="dk">'+k+'</span><span class="dv">'+v+'</span></div>'; }
+
+// each renderer returns HTML for #docPaper content area
+const DOCS = {
+  idcard:{type:'id', title:'بطاقة الرقم القومي', stamp:'صورة ضوئية',
+    render(){ return '<div class="docid"><div class="didhead">جمهورية مصر العربية<br>بطاقة الرقم القومي</div>'+
+      '<div class="didbody"><img class="didphoto" src="'+portraitCanvas('youssef')+'">'+
+      '<div class="didfields">'+
+      fieldRow('الاسم','يوسف محمود النجار')+
+      fieldRow('الرقم القومي','٢٨٨٠٧٠١٠١٢٣٤٥')+
+      fieldRow('تاريخ الميلاد','١٩٨٨/٠٧/٠١')+
+      fieldRow('محل الميلاد','الإسكندرية')+
+      fieldRow('العنوان','١٢ ش قصر النيل - وسط البلد - القاهرة')+
+      fieldRow('الوظيفة','صحفي')+
+      '</div></div><div class="didfoot">سارية حتى ٢٠٣١/٠٦/٣٠</div></div>'; } },
+  birthcert:{type:'cert', title:'شهادة ميلاد', stamp:'صورة رسمية',
+    render(){ return '<div class="doccert"><div class="dcerthead">مصلحة الأحوال المدنية<br>شهادة ميلاد</div>'+
+      fieldRow('اسم المولود','يوسف محمود النجار')+
+      fieldRow('تاريخ الميلاد','١ يوليو ١٩٨٨')+
+      fieldRow('محل القيد','قسم المنتزه - الإسكندرية')+
+      fieldRow('اسم الأب','محمود النجار إبراهيم')+
+      fieldRow('اسم الأم','فاطمة حسان علي')+
+      fieldRow('رقم القيد','١٩٨٨/م/٠٧٦٥٤')+
+      '<div class="dcertseal">ختم<br>الأحوال</div></div>'; } },
+  report:{type:'police', title:'محضر بلاغ اختفاء', stamp:'أحوال',
+    render(){ return '<div class="docpolice"><div class="dpolhead">وزارة الداخلية<br>قسم شرطة قصر النيل<br>محضر أحوال رقم ٤٥٧٢ لسنة ٢٠٢٦</div>'+
+      '<p><b>الموضوع:</b> بلاغ عن غياب المدعو/ يوسف محمود النجار، ٣٨ سنة، صحفي.</p>'+
+      '<p><b>مقدم البلاغ:</b> السيدة/ مريم سامي فؤاد، صحفية، زميلة الغائب بالعمل.</p>'+
+      '<p><b>الوقائع:</b> أفادت مقدمة البلاغ بأن الغائب لم يحضر لعمله منذ يوم الخميس الماضي، وأن هاتفه مغلق، وأنه كان يعمل على تحقيق صحفي حساس قبل اختفائه.</p>'+
+      '<p><b>تحريات مبدئية:</b> لا توجد آثار عنف بمحل سكنه. جاري استكمال التحريات.</p>'+
+      '<div class="dpolsign">أمين الشرطة المختص<br>وكيل أول/ شريف عبد العال</div></div>'; } },
+  newsclip:{type:'news', title:'قصاصة جريدة صوت مصر', stamp:'مقال',
+    render(){ return '<div class="docnews"><div class="dnewshead">صوت مصر</div><div class="dnewsdate">العدد ١٢٤٧ - الخميس</div>'+
+      '<h2>مخازن المنتزه بلا رقيب: أين تذهب البضاعة؟</h2>'+
+      '<p>تحقيق: يوسف النجار</p>'+
+      '<p class="dnewsbody">وثّق "صوت مصر" دخول سيارات نقل محملة بضاعة غير مُسجلة إلى مخازن بمنطقة المنتزه بعد منتصف الليل، دون أوراق جمركية أو فواتير. مصادرنا تؤكد أن القضية أكبر من تهريب بضائع... وأن ملفات قديمة على وشك أن تُفتح من جديد.</p>'+
+      '<p class="dnewsbody">(قصاصة من الجريدة كانت مطوية في دفتر مريم)</p></div>'; } },
+  receipt:{type:'receipt', title:'إيصال قهوة عم رجب', stamp:'الحساب',
+    render(){ return '<div class="docreceipt"><div class="drhead">قهوة عم رجب<br>تحت عمارة النور - ش قصر النيل</div>'+
+      '<div class="drline">-------------------------</div>'+
+      fieldRow('التاريخ','الخميس - ١١:٠٥ مساءً')+
+      fieldRow('٢ قهوة سادة','٣٠ جنيه')+
+      fieldRow('١ شاي نعناع','١٠ جنيه')+
+      '<div class="drline">-------------------------</div>'+
+      fieldRow('الإجمالي','٤٠ جنيه')+
+      '<p class="drnote">ملاحظة: يوسف + ضيف (شال الحساب يوسف)</p>'+
+      '<div class="drsign">عم رجب</div></div>'; } },
+  ticket:{type:'ticket', title:'تذكرة قطار', stamp:'غير مستخدمة',
+    render(){ return '<div class="docticket"><div class="dthead">السكك الحديدية المصرية</div>'+
+      '<div class="dtroute">القاهرة ⇦ الإسكندرية</div>'+
+      fieldRow('القطار','٩٠٣ - مكيف درجة تانية')+
+      fieldRow('الموعد','الخميس - ١١:٤٥ مساءً')+
+      fieldRow('العربة','٣ - مقعد ٤٥')+
+      fieldRow('السعر','١٢٥ جنيه')+
+      '<div class="dtserial">رقم التذكرة: ٤٥٦٧٨٩</div></div>'; } },
+  contract:{type:'contract', title:'عقد إيجار مخزن', stamp:'مستند',
+    render(){ return '<div class="doccontract"><div class="dchead">عقد إيجار مخزن</div>'+
+      '<p>إنه في يوم الخميس الموافق ١ من الشهر الجاري، تم الاتفاق بين كل من:</p>'+
+      '<p><b>أولًا:</b> شركة المنتزه للتخزين (طرف أول مؤجّر)</p>'+
+      '<p><b>ثانيًا:</b> شركة النور للاستيراد والتصدير، يمثلها السيد/ س. الشاذلي (طرف ثانٍ مستأجر)</p>'+
+      '<p><b>الموضوع:</b> إيجار المخزن رقم ١٤ بالمنطقة الصناعية - المنتزه - الإسكندرية، لغرض تخزين "سجاد ومفروشات".</p>'+
+      '<p><b>المدة:</b> سنة قابلة للتجديد. <b>القيمة:</b> تُسدد نقدًا في أول كل شهر.</p>'+
+      '<div class="dcsigns"><span>توقيع المؤجر</span><span>توقيع المستأجر</span></div>'+
+      '<p class="dcnote">(ملاحظة مريم بخط اليد: "شركة النور مفيش ليها سجل تجاري حقيقي!")</p></div>'; } },
+  notebook:{type:'hand', title:'دفتر ملاحظات يوسف', stamp:'سري',
+    render(){ return '<div class="dochand">آخر صفحة في الدفتر:<br><br>"لو حصلي حاجة، الملف الأحمر هو اللي ورا كل ده. المخازن مش بتفرّغ سجاد قديم... بتفرّغ أسرار."<br><br>وباقي الصفحات مليانة أسماء وتواريخ شطب عليها.</div>'; } },
+  paper:{type:'hand', title:'ورقة مكرمشة من السلة', stamp:'دليل',
+    render(){ return '<div class="dochand">مخازن المنتزه - إسكندرية<br>الخميس بعد نص الليل<br>متتأخرش</div>'; } },
+  photo:{type:'photo', title:'صورة بعد تركيبها', stamp:'دليل',
+    render(){ const cv=document.createElement('canvas'); cv.width=300; cv.height=300; drawPhotoFull(cv.getContext('2d'),300,300);
+      return '<div class="docphoto"><img src="'+cv.toDataURL()+'" style="width:100%;border:1px solid #444">'+
+      '<div class="dphotocap">يوسف قدام مخزن ١٤ - المنتزه (على الضهر: "قبل الاختفاء بيوم")</div></div>'; } },
+  mobile:{type:'phone', title:'آخر رسالة على الموبايل', stamp:'دليل',
+    render(){ return '<div class="docphone"><div class="dphhead">رسائل - رقم مجهول</div>'+
+      '<div class="dphin">مكانك المعتاد بكرة بالليل. هات الملف ومتتأخرش.</div>'+
+      '<div class="dphmeta">١٠:٥٨ م - الرقم مقفول ومش متسجل</div></div>'; } },
+  cup:{type:'police', title:'محضر معاينة مبدئي', stamp:'معاينة',
+    render(){ return '<div class="docpolice"><div class="dpolhead">معاينة مسرح - شقة يوسف النجار</div>'+
+      '<p>فنجان على المكتب، فيه بقايا قهوة باللبن.</p>'+
+      '<p><b>ملاحظة مهمة:</b> يوسف النجار مبيشربش قهوة باللبن خالص (حسب أقوال المحيطين).</p>'+
+      '<p>فيه بصمة واضحة على الفنجان، اترفعت ومحتاجة تحليل في المعمل الجنائي.</p></div>'; } },
+  print:{type:'police', title:'تقرير المعمل الجنائي', stamp:'مختبر',
+    render(){ return '<div class="docpolice"><div class="dpolhead">المعمل الجنائي - قسم البصمات<br>تقرير رقم ٢١٣</div>'+
+      '<p><b>العينة:</b> بصمة مرفوعة من فنجان بشقة يوسف النجار.</p>'+
+      '<p><b>نتيجة المطابقة:</b> البصمة <u>لا تطابق</u> بصمة يوسف النجار.</p>'+
+      '<p><b>الخلاصة:</b> شخص آخر كان في الشقة ليلة الاختفاء، وشرب قهوة بهدوء قبل اختفاء يوسف.</p>'+
+      '<div class="dpolsign">محلل أول/ سليم فؤاد</div></div>'; } },
+  statement:{type:'police', title:'محضر أقوال شاهد', stamp:'شهادة',
+    render(){ return '<div class="docpolice"><div class="dpolhead">قسم شرطة قصر النيل<br>محضر سماع أقوال</div>'+
+      '<p><b>الشاهد:</b> رجب حسن قطب، ٥٦ سنة، صاحب قهوة.</p>'+
+      '<p><b>الأقوال:</b> "والله يا باشا أنا ماشفتش يوسف من يومين تقريبًا... آه من يومين كده."</p>'+
+      '<p><b>ملاحظة المحقق:</b> الشاهد كان متوترًا أثناء الإدلاء بأقواله، وعيناه تتهربان.</p></div>'; } },
+  contra:{type:'police', title:'مذكرة تناقض', stamp:'مهم',
+    render(){ return '<div class="docpolice"><div class="dpolhead">مذكرة المحقق آدم منصور<br>موضوع: تناقض في أقوال الشاهد</div>'+
+      '<p>الشاهد (عم رجب) يدعي: "ماشفتش يوسف من يومين".</p>'+
+      '<p>لكن: رسالة المجهول تقول "مكانك المعتاد بكرة بالليل"، والمكان المعتاد هو قهوة عم رجب نفسها، وإيصال القهوة يثبت وجود يوسف عنده ليلة الاختفاء الساعة ١١:٠٥ مساءً.</p>'+
+      '<p><b>الخلاصة:</b> الشاهد شاف يوسف ليلة الاختفاء ويكتب ذلك. لماذا يكذب؟</p></div>'; } },
+  place:{type:'police', title:'مذكرة استنتاج', stamp:'استنتاج',
+    render(){ return '<div class="docpolice"><div class="dpolhead">مذكرة المحقق آدم منصور<br>موضوع: مكان الاختفاء المحتمل</div>'+
+      '<p>الصورة الممزقة + ورقة المخازن:</p>'+
+      '<p>يوسف كان يراقب مخازن المنتزه بالإسكندرية قبل اختفائه بيوم. المخزن رقم ١٤ في الصورة هو نفسه المكتوب في الورقة، وعقد الإيجار باسم شركة وهمية.</p>'+
+      '<p><b>الخلاصة:</b> الاختفاء مرتبط بمخزن ١٤ - المنتزه - الإسكندرية.</p></div>'; } },
+};
+// ===== محرك الموسيقى - مولّدة برمجيًا 100% (مفيش أي ملفات صوت محمية) =====
+// ستايل ألعاب التسعينات/الألفين: موجات square/triangle + إيقاع noise، سلم شرقي (هيجاز/فرجيان)
+const Music = (function(){
+  const SCALE=[0,1,4,5,7,8,10]; // E phrygian dominant (شرقي)
+  const BASE=52; // E3
+  const freq=(deg,oct)=>{ const o=oct||0; const d=((deg%7)+7)%7; const wrap=Math.floor(deg/7);
+    return 440*Math.pow(2,(BASE+SCALE[d]+(o+wrap)*12-69)/12); };
+  // كل ثيم: 32 خطوة (مازورتين)، null = سكوت
+  const THEMES={
+    title:{bpm:80, leadWave:'square', bassWave:'triangle', leadVol:.11, bassVol:.10,
+      lead:[0,null,null,null, 3,null,2,null, 1,null,2,null, 0,null,null,null,
+            4,null,null,null, 3,null,2,null, 1,null,0,null, -1,null,null,null],
+      bass:[-7,null,null,null, null,null,null,null, -8,null,null,null, null,null,null,null,
+            -9,null,null,null, null,null,null,null, -7,null,null,null, null,null,0,null],
+      hat:[1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,1,0]},
+    hub:{bpm:104, leadWave:'square', bassWave:'triangle', leadVol:.10, bassVol:.11,
+      lead:[0,null,2,null, 4,null,5,null, 7,null,5,null, 4,null,2,null,
+            4,null,2,null, 1,null,2,null, 0,null,null,null, null,null,null,null],
+      bass:[-7,null,-7,null, -7,null,-7,null, -8,null,-8,null, -8,null,-8,null,
+            -9,null,-9,null, -9,null,-9,null, -7,null,-7,null, -7,null,0,null],
+      hat:[1,0,1,0, 1,0,1,1, 1,0,1,0, 1,0,1,1, 1,0,1,0, 1,0,1,1, 1,0,1,0, 1,1,1,0],
+      snare:[0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,1]},
+    scene:{bpm:92, leadWave:'sawtooth', bassWave:'triangle', leadVol:.055, bassVol:.11,
+      lead:[0,null,null,null, null,null,1,null, 0,null,null,null, null,null,null,null,
+            2,null,null,null, null,null,1,null, 0,null,null,null, null,null,null,null],
+      bass:[-7,null,null,null, -7,null,null,null, -7,null,null,null, -8,null,null,null,
+            -7,null,null,null, -7,null,null,null, -9,null,null,null, -8,null,null,null],
+      hat:[1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0]},
+    puzzle:{bpm:78, leadWave:'triangle', bassWave:'sine', leadVol:.13, bassVol:.10,
+      lead:[4,null,5,null, 7,null,null,null, 8,null,7,null, 5,null,null,null,
+            4,null,2,null, 4,null,null,null, 1,null,2,null, 0,null,null,null],
+      bass:[-7,null,null,null, null,null,null,null, -9,null,null,null, null,null,null,null,
+            -8,null,null,null, null,null,null,null, -7,null,null,null, null,null,null,null],
+      hat:[0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0, 0,0,1,0]},
+    ending:{bpm:72, leadWave:'triangle', bassWave:'sine', leadVol:.12, bassVol:.10,
+      lead:[0,null,null,2, 4,null,null,null, 5,null,4,null, 2,null,null,null,
+            7,null,null,5, 4,null,2,null, 1,null,null,null, 0,null,null,null],
+      bass:[-7,null,null,null, null,null,null,null, -8,null,null,null, null,null,null,null,
+            -9,null,null,null, null,null,null,null, -7,null,null,null, null,null,null,null],
+      hat:[1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0]},
+  };
+  let cur=null, timer=null, step=0, nextT=0, noiseBuf=null, master=null;
+  function mGain(){ const ac=audio(); if(!ac) return null;
+    if(!master){ master=ac.createGain(); master.gain.value=1; master.connect(ac.destination); } return master; }
+  function getNoise(){ const ac=audio();
+    if(!noiseBuf){ noiseBuf=ac.createBuffer(1, ac.sampleRate*0.12, ac.sampleRate);
+      const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length); }
+    return noiseBuf; }
+  function note(f,t,d,wave,vol){ const ac=audio(); const g=mGain(); if(!ac||!g) return;
+    const o=ac.createOscillator(), v=ac.createGain(); o.type=wave; o.frequency.value=f;
+    v.gain.setValueAtTime(0.0001,t); v.gain.linearRampToValueAtTime(vol,t+0.015);
+    v.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(v).connect(g); o.start(t); o.stop(t+d+0.03); }
+  function noise(t,d,vol,hp){ const ac=audio(); const g=mGain(); if(!ac||!g) return;
+    const s=ac.createBufferSource(); s.buffer=getNoise();
+    const f=ac.createBiquadFilter(); f.type=hp?'highpass':'bandpass'; f.frequency.value=hp?6000:1800;
+    const v=ac.createGain(); v.gain.setValueAtTime(vol,t); v.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    s.connect(f).connect(v).connect(g); s.start(t); s.stop(t+d+0.02); }
+  function schedStep(th, i, t){
+    const sd=60/th.bpm/4;
+    const L=th.lead[i%BASE_LEN(th.lead)], B=th.bass[i%th.bass.length];
+    if(L!==null&&L!==undefined) note(freq(L,0), t, sd*1.9, th.leadWave, th.leadVol);
+    if(B!==null&&B!==undefined) note(freq(B,-1), t, sd*1.6, th.bassWave, th.bassVol);
+    if(th.hat&&th.hat[i%th.hat.length]) noise(t,0.05,0.05,true);
+    if(th.snare&&th.snare[i%th.snare.length]) noise(t,0.12,0.09,false);
+  }
+  function BASE_LEN(a){ return a.length; }
+  function tick(){ const ac=audio(); if(!ac||!cur) return;
+    if(ac.state!=='running') return; // مستني أول لمسة
+    const th=THEMES[cur]; const sd=60/th.bpm/4;
+    while(nextT < ac.currentTime + 0.22){ schedStep(th, step, nextT); step=(step+1)%32; nextT+=sd; } }
+  function play(theme){
+    if(!theme || !G.settings.music){ stop(); cur=theme; return; }
+    if(cur===theme && timer) return;
+    stop(); cur=theme;
+    const ac=audio(); if(!ac) return;
+    if(ac.state==='suspended'){ try{ ac.resume(); }catch(e){} }
+    step=0; nextT=ac.currentTime+0.08;
+    timer=setInterval(tick, 80); tick(); }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+  function sting(kind){ const ac=audio(); if(!ac||!G.settings.music) return;
+    if(ac.state!=='running') return;
+    const t=ac.currentTime+0.03;
+    if(kind==='victory'){ [0,4,7,12,16].forEach((d,i)=>note(freq(d,0), t+i*0.11, 0.34, 'square', 0.12));
+      [0,4,7].forEach(d=>note(freq(d,-1), t+0.55, 0.8, 'triangle', 0.10)); }
+    else if(kind==='fail'){ note(freq(0,-2), t, 0.5, 'sawtooth', 0.12); note(freq(1,-2), t+0.12, 0.6, 'sawtooth', 0.10); } }
+  return {play, stop, sting, get theme(){ return cur; }};
+})();
+
+function currentTheme(){
+  if(!$('endScreen').classList.contains('hidden')) return 'ending';
+  if(!$('title').classList.contains('hidden')) return 'title';
+  const puzz=['fpPanel','photoPanel','codePanel','boardPanel'].some(id=>{ const e=$(id); return e && !e.classList.contains('hidden'); });
+  if(puzz) return 'puzzle';
+  if(!$('scene').classList.contains('hidden')) return 'scene';
+  return 'hub';
+}
+function refreshMusic(){ Music.play(currentTheme()); }
+// ===== part 2: dialogue engine, hub map, scenes, doc viewer =====
+let DLG=null;
+function startDialogue(script, onEnd){ DLG={script, i:0, onEnd};
+  $('dlg').classList.remove('hidden'); showDlgNode(); }
+function showDlgNode(){ const n=DLG.script[DLG.i];
+  if(!n){ endDialogue(); return; }
+  $('dlgName').textContent=n.n||''; $('dlgText').textContent=n.t||'';
+  const ch=$('dlgChoices'); ch.innerHTML='';
+  $('dlgNext').style.display=n.choices?'none':'inline-block';
+  if(n.choices){ for(const c of n.choices){
+    const b=document.createElement('button'); b.className='choice'; b.textContent=c.t;
+    b.addEventListener('click', ()=>{ sfx('click'); if(c.pts) addPts(c.pts); if(c.flag) G.flags[c.flag]=true;
+      DLG.i = typeof c.goto==='number'? c.goto : DLG.i+1; showDlgNode(); });
+    ch.appendChild(b); } }
+  else if(n.t) speak(n.t);
+  if(n.do) n.do(); }
+$('dlgNext').addEventListener('click', ()=>{ if(!DLG) return; sfx('click'); const cur=DLG.script[DLG.i];
+  DLG.i = (cur && typeof cur.jmp==='number') ? cur.jmp : DLG.i+1; showDlgNode(); });
+function endDialogue(){ $('dlg').classList.add('hidden');
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const cb=DLG&&DLG.onEnd; DLG=null; if(cb) cb(); }
+
+// ---------- screens ----------
+function showScreen(name){ ['title','hub','scene','endScreen'].forEach(s=>$(s).classList.add('hidden'));
+  $(name).classList.remove('hidden');
+  $('topbar').classList.toggle('hidden', name==='title'||name==='endScreen');
+  refreshMusic(); }
+
+// ---------- hub map ----------
+const PLACES = [
+  {id:'police', name:'قسم شرطة قصر النيل', x:0.22, y:0.30, icon:'🚔', min:0},
+  {id:'apt', name:'عمارة النور (شقة يوسف)', x:0.55, y:0.42, icon:'🏢', min:0},
+  {id:'cafe', name:'قهوة عم رجب', x:0.38, y:0.62, icon:'☕', min:3},
+  {id:'news', name:'الجريدة (مريم)', x:0.72, y:0.66, icon:'📰', min:6},
+];
+function drawHub(){
+  const cv=$('hubCv'); const r=cv.getBoundingClientRect(); if(r.width<10) return;
+  cv.width=r.width*2; cv.height=r.height*2; const x=cv.getContext('2d'); x.scale(2,2);
+  const W=r.width, H=r.height;
+  // night bg
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#070a12');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  // Nile on the left
+  x.fillStyle='#12283e'; x.beginPath(); x.moveTo(0,0);
+  x.bezierCurveTo(W*0.16,H*0.2, W*0.04,H*0.5, W*0.14,H);
+  x.lineTo(0,H); x.closePath(); x.fill();
+  x.fillStyle='#1a3a56'; x.font='13px Cairo'; x.fillText('النيل', W*0.05, H*0.5);
+  // streets
+  x.strokeStyle='#232c3e'; x.lineWidth=8;
+  for(let i=1;i<5;i++){ x.beginPath(); x.moveTo(W*0.15,H*i/5); x.lineTo(W,H*i/5); x.stroke(); }
+  for(let i=2;i<6;i++){ x.beginPath(); x.moveTo(W*i/6,0); x.lineTo(W*i/6,H); x.stroke(); }
+  x.fillStyle='#4a5878'; x.font='12px Cairo'; x.textAlign='center';
+  x.fillText('شارع قصر النيل', W*0.55, H*0.42-26);
+  // pins
+  for(const p of PLACES){
+    const px=p.x*W, py=p.y*H;
+    const locked = G.obj < p.min;
+    const active = (p.id==='apt'&&G.obj<=1)||(p.id==='cafe'&&(G.obj===3||G.obj===5))||(p.id==='news'&&G.obj===6)||(p.id==='police'&&G.obj===7);
+    x.beginPath(); x.arc(px,py, active?26:20, 0, Math.PI*2);
+    x.fillStyle = locked? 'rgba(20,28,46,.9)' : active? '#c9a227' : '#1a2440';
+    x.fill(); x.lineWidth=2; x.strokeStyle= locked?'#2e3d5c':(active?'#ffd75e':'#3a4c74'); x.stroke();
+    x.font=(active?22:18)+'px Cairo'; x.fillStyle= locked?'#3a4c74':'#e8e6df';
+    x.fillText(locked?'🔒':p.icon, px, py+7);
+    x.font='bold 13px Cairo'; x.fillStyle= locked?'#4a5878':'#ffd75e';
+    x.fillText(p.name, px, py+(active?44:38));
+    if(active){ x.beginPath(); x.arc(px,py,32+Math.sin(Date.now()/300)*4,0,Math.PI*2);
+      x.strokeStyle='rgba(255,215,94,.5)'; x.stroke(); }
+  }
+  x.fillStyle='#8fa3c8'; x.font='12px Cairo'; x.fillText('وسط البلد - القاهرة', W*0.5, H-10);
+}
+$('hubCv').addEventListener('click', e=>{
+  const cv=$('hubCv'); const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  for(const p of PLACES){ const px=p.x*r.width, py=p.y*r.height;
+    if(Math.hypot(mx-px,my-py)<34){
+      if(G.obj<p.min){ toast('المكان ده لسه مش متاح... كمّل مهمتك الأول'); sfx('bad'); return; }
+      sfx('click'); gotoPlace(p.id); return; } }
+});
+
+function hideToast(){ const t=$('toast'); t.classList.add('hidden'); clearTimeout(t._tm); }
+function gotoPlace(id){
+  hideToast();
+  G.place=id; save();
+  if(id==='apt') showScene('apt');
+  else if(id==='cafe') showScene('cafe');
+  else if(id==='news') showScene('news');
+  else if(id==='police') showScene('police');
+}
+function goHub(){ hideToast(); G.place='hub'; save(); showScreen('hub'); requestAnimationFrame(drawHub); }
+
+// ---------- scenes ----------
+function showScene(name){ showScreen('scene'); drawScene(name); renderSceneActions(name); }
+function drawScene(name){
+  const cv=$('sceneCv'); const r=cv.getBoundingClientRect(); if(r.width<10) return;
+  cv.width=r.width*2; cv.height=r.height*2; const x=cv.getContext('2d'); x.scale(2,2);
+  const W=r.width, H=r.height;
+  const g=x.createLinearGradient(0,0,0,H);
+  if(name==='apt'){ g.addColorStop(0,'#1a1410'); g.addColorStop(1,'#0d0a08'); }
+  else if(name==='cafe'){ g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#120d08'); }
+  else { g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#070a12'); }
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.textAlign='center';
+  if(name==='apt'){
+    // room: back wall, window with night sky, desk, shelf, rug
+    x.fillStyle='#241c14'; x.fillRect(0,H*0.55,W,H*0.45); // floor
+    x.fillStyle='#3a2f22'; x.fillRect(0,0,W,H*0.55);       // wall
+    x.fillStyle='#12203a'; x.fillRect(W*0.36,H*0.08,W*0.28,H*0.3); // window
+    x.strokeStyle='#57492f'; x.lineWidth=5; x.strokeRect(W*0.36,H*0.08,W*0.28,H*0.3);
+    x.beginPath(); x.moveTo(W*0.5,H*0.08); x.lineTo(W*0.5,H*0.38); x.moveTo(W*0.36,H*0.23); x.lineTo(W*0.64,H*0.23); x.stroke();
+    x.fillStyle='#f5efd8'; x.beginPath(); x.arc(W*0.58,H*0.15,10,0,Math.PI*2); x.fill(); // moon
+    x.fillStyle='#5a2018'; x.fillRect(W*0.3,H*0.62,W*0.4,H*0.26); // rug
+    x.strokeStyle='#7a3020'; x.lineWidth=3; x.strokeRect(W*0.32,H*0.64,W*0.36,H*0.22);
+    x.fillStyle='#4a341e'; x.fillRect(W*0.06,H*0.42,W*0.24,H*0.05); // desk
+    x.fillStyle='#3a2814'; x.fillRect(W*0.08,H*0.47,W*0.03,H*0.18); x.fillRect(W*0.25,H*0.47,W*0.03,H*0.18);
+    x.fillStyle='#453320'; x.fillRect(W*0.74,H*0.12,W*0.2,H*0.5); // shelf
+    for(let i=0;i<8;i++){ x.fillStyle=['#8a3a2a','#2a5a6a','#6a6a2a','#4a3a6a'][i%4];
+      x.fillRect(W*0.755+(i%4)*W*0.042, H*0.16+Math.floor(i/4)*H*0.16, W*0.032, H*0.1); }
+    x.fillStyle='#33506a'; x.fillRect(W*0.7,H*0.66,W*0.26,H*0.14); // bed
+    x.fillStyle='#d8cfb8'; x.fillRect(W*0.7,H*0.6,W*0.09,H*0.05); // pillow
+    x.fillStyle='#8a8578'; x.font='26px Cairo'; x.fillText('🗑', W*0.12, H*0.9);
+    x.fillStyle='#8fa3c8'; x.font='13px Cairo'; x.fillText('شقة يوسف النجار - عمارة النور', W/2, H-12);
+  } else if(name==='cafe'){
+    // night cafe: awning, tables, lamps, عم رجب figure
+    x.fillStyle='#0e0c10'; x.fillRect(0,H*0.6,W,H*0.4);
+    x.fillStyle='#5a3a1a'; x.fillRect(0,0,W,H*0.14); // awning
+    for(let i=0;i<8;i++){ x.fillStyle=i%2?'#6a4a20':'#4a3010'; x.fillRect(W*i/8,0,W/8,H*0.14); }
+    x.fillStyle='#e8c35a'; x.font='bold 22px Cairo'; x.fillText('قهوة عم رجب', W/2, H*0.1);
+    for(const tx of [0.2,0.5,0.8]){ x.fillStyle='#6a4a2a'; x.beginPath(); x.arc(W*tx,H*0.62,26,0,Math.PI*2); x.fill();
+      x.fillStyle='#3a3f48'; x.fillRect(W*tx-4,H*0.62,8,H*0.2);
+      x.fillStyle='#7a3a2a'; x.fillRect(W*tx+30,H*0.6,22,22); }
+    // عم رجب
+    x.fillStyle='#6a4a8a'; x.fillRect(W*0.5-16,H*0.3,32,52); // body
+    x.fillStyle='#b98a5e'; x.beginPath(); x.arc(W*0.5,H*0.26,15,0,Math.PI*2); x.fill(); // head
+    x.fillStyle='#8a2a2a'; x.fillRect(W*0.5-16,H*0.16,32,10); // cap
+    x.fillStyle='#ffd98a'; for(const lx of [0.1,0.9]){ x.beginPath(); x.arc(W*lx,H*0.2,7,0,Math.PI*2); x.fill(); }
+    x.fillStyle='#8fa3c8'; x.font='13px Cairo'; x.fillText('قهوة عم رجب - تحت عمارة النور', W/2, H-12);
+  } else if(name==='police'){
+    x.fillStyle='#1a2440'; x.fillRect(W*0.15,H*0.2,W*0.7,H*0.6); // building
+    x.fillStyle='#9fc2ff'; x.font='bold 20px Cairo'; x.fillText('قسم شرطة قصر النيل', W/2, H*0.17);
+    for(let i=0;i<3;i++) for(let j=0;j<4;j++){ x.fillStyle=Math.random()<0.5?'#ffd98a':'#0d1320';
+      x.fillRect(W*(0.22+j*0.16), H*(0.26+i*0.15), W*0.08, H*0.09); }
+    x.fillStyle='#1c2a44'; x.fillRect(W*0.42,H*0.6,W*0.16,H*0.2); // door
+    x.fillStyle='#2a3a5c'; x.fillRect(W*0.47,H*0.5,26,42); // officer body
+    x.fillStyle='#c8996a'; x.beginPath(); x.arc(W*0.47+13,H*0.47,12,0,Math.PI*2); x.fill();
+    x.fillStyle='#1a2440'; x.fillRect(W*0.47+1,H*0.41,24,8);
+    x.fillStyle='#8fa3c8'; x.font='13px Cairo'; x.fillText('قسم شرطة قصر النيل', W/2, H-12);
+  } else if(name==='news'){
+    x.fillStyle='#241f2e'; x.fillRect(W*0.1,H*0.15,W*0.8,H*0.65);
+    x.fillStyle='#e8c35a'; x.font='bold 22px Cairo'; x.fillText('جريدة صوت مصر', W/2, H*0.12);
+    x.fillStyle='#141c2e'; x.fillRect(W*0.16,H*0.22,W*0.68,H*0.5);
+    x.fillStyle='#e8e6df'; x.font='15px Cairo';
+    x.fillText('مكتب مريم - قسم التحقيقات', W/2, H*0.32);
+    x.fillStyle='#8fa3c8'; x.font='13px Cairo';
+    x.fillText('أوراق وملفات متراكمة في كل حتة...', W/2, H*0.42);
+    x.fillText('وصورة يوسف على الحيطة عليها علامة استفهام', W/2, H*0.5);
+    x.fillStyle='#8fa3c8'; x.font='13px Cairo'; x.fillText('جريدة صوت مصر', W/2, H-12);
+  }
+}
+// ===== part 3: scene actions, doc viewer, puzzles, board, panels, boot =====
+function renderSceneActions(name){
+  const el=$('sceneActions'); el.innerHTML='';
+  const add=(label, fn, gold, sub)=>{ const b=document.createElement('button');
+    b.className='actBtn'+(gold?' gold':''); b.innerHTML=''; b.textContent=label;
+    if(sub){ const s=document.createElement('span'); s.className='s'; s.textContent=sub; b.appendChild(s); }
+    b.addEventListener('click', ()=>{ sfx('click'); fn(); }); el.appendChild(b); };
+  const titles={apt:'شقة يوسف النجار', cafe:'قهوة عم رجب', police:'قسم شرطة قصر النيل', news:'جريدة صوت مصر'};
+  $('sceneTitle').textContent=titles[name]||'';
+
+  if(name==='apt'){
+    if(G.obj===0) setObj(1);
+    const spots=[
+      ['notebook','🔍 فتّش المكتب','دفتر وأوراق'],
+      ['idcard','🗄 افتح درج المكتب','محفظة وورق رسمي'],
+      ['birthcert','🚪 دوّر في الدولاب','ملف قديم'],
+      ['photo','🛏 بص تحت السرير','في حاجة مزقعة'],
+      ['mobile','🛋 شوف الكنبة','موبايل مرمي'],
+      ['paper','🗑 سلة المهملات','ورق مكرمش'],
+    ];
+    if(!G.clues.includes('cup')) spots.push(['cup','☕ المكتب من الناحية التانية','فنجان قهوة']);
+    for(const [id,label,sub] of spots){
+      if(G.clues.includes(id)) continue;
+      if(id==='idcard'){ add(label, openCode, false, sub); continue; } // الدرج مقفول بكود
+      add(label, ()=>takeClue(id), false, sub);
+    }
+    if(G.obj===2) add('🔬 حلّل بصمة الفنجان', openFingerprint, true);
+    if(!el.children.length) add('مفيش حاجة تانية هنا', ()=>toast('خلصت اللي في الشقة'), false);
+  }
+  if(name==='cafe'){
+    addMet('ragab');
+    if(G.obj===3) add('🗣 اسأل عم رجب عن يوسف', ()=>{
+      startDialogue(S_RAGAB1, ()=>{ addClue('statement'); addClue('receipt'); setObj(4); toast('افتح لوحة التحقيق (🧩 فوق) واربط الأدلة'); }); }, true);
+    else if(G.obj===5) add('⚠ واجه عم رجب بالتناقض', ()=>{
+      if(!G.clues.includes('contra')){ toast('لازم تلاقي التناقض الأول من لوحة التحقيق'); return; }
+      startDialogue(S_RAGAB2, ()=>{ addPts(15); setObj(6); toast('مريم الصحفية ممكن تعرف أكتر عن الملف'); }); }, true);
+    else add('🗣 كلم عم رجب', ()=>startDialogue([{n:'عم رجب', t:'أهلين يا باشا! القهوة عندي أحلى قهوة في وسط البلد. تعالى لما تفضى.'}]));
+    add('☕ اطلب قهوة سادة', ()=>toast('قهوة سادة زي ما يوسف كان بياخدها... بالظبط'));
+  }
+  if(name==='police'){
+    addMet('sharif');
+    if(G.obj===7) add('🚔 ادخل للعقيد شريف', ()=>{ startDialogue(S_SHARIF_END, ()=>chapterEnd()); }, true);
+    else add('🚔 اسأل في القسم', ()=>startDialogue([{n:'أمين الشرطة', t:'العقيد شريف مشغول يا باشا... لو عندك قضية محتاج تحقيق فعلي، المعمل الجنائي هو اللي هيفيدك.'}]));
+  }
+  if(name==='news'){
+    addMet('maryam');
+    if(G.obj===6) add('📰 كلم مريم عن الملف الأحمر', ()=>{
+      startDialogue(S_MARYAM, ()=>{ addPts(15); addClue('newsclip'); addClue('report'); addClue('contract'); setObj(7); toast('ارجع للعقيد شريف في القسم'); }); }, true);
+    else add('📰 سلّم على مريم', ()=>startDialogue([{n:'مريم', t:'آدم؟ أي خبر عن يوسف؟ أنا قلبي مش مستحمل... لقيت حاجة؟'}]));
+  }
+  add('🗺 ارجع للخريطة', goHub);
+}
+
+// ---------- doc viewer ----------
+let docClue=null, docZoom=1, curDocId=null;
+function applyDocZoom(){ $('docPaper').style.zoom=docZoom; }
+function openDoc(clueId, takeMode){
+  hideToast();
+  const c=CLUES[clueId]; if(!c) return;
+  docClue = takeMode? clueId : null; curDocId=clueId; docZoom=1;
+  const d=DOCS[clueId];
+  $('docTitle').textContent=(d&&d.title)||c.title||c.name;
+  $('docBody').innerHTML = d? d.render() : (c.body||c.desc);
+  const stamp=(d&&d.stamp)||c.stamp;
+  const st=$('docStamp');
+  if(stamp){ st.textContent=stamp; st.classList.remove('hidden'); } else st.classList.add('hidden');
+  $('docTake').textContent = takeMode? 'خد الدليل 📎' : 'قفل';
+  applyDocZoom();
+  $('docWrap').classList.remove('hidden');
+}
+$('docZmIn').addEventListener('click', ()=>{ sfx('click'); docZoom=Math.min(2.2, +(docZoom+0.25).toFixed(2)); applyDocZoom(); });
+$('docZmOut').addEventListener('click', ()=>{ sfx('click'); docZoom=Math.max(0.7, +(docZoom-0.25).toFixed(2)); applyDocZoom(); });
+$('docCmpBtn').addEventListener('click', ()=>{ sfx('click'); openCompare(curDocId); });
+function docHtmlFor(id){ const d=DOCS[id]; if(d) return d.render();
+  const c=CLUES[id]; return '<p>'+(c.body||c.desc)+'</p>'; }
+function openCompare(leftId){
+  hideToast();
+  const cols=$('cmpCols'); cols.innerHTML='';
+  const mk=(id)=>{ const d=document.createElement('div'); d.className='cmpCol';
+    const c=CLUES[id]; d.innerHTML='<h4></h4><div class="cmpBody"></div>';
+    d.querySelector('h4').textContent=c?c.name:id;
+    d.querySelector('.cmpBody').innerHTML=docHtmlFor(id); return d; };
+  cols.appendChild(mk(leftId));
+  const others=G.clues.filter(c=>c!==leftId && CLUES[c]);
+  if(!others.length){ const p=document.createElement('div'); p.className='cmpCol';
+    p.innerHTML='<h4>مفيش مستند تاني</h4><p style="text-align:center;color:#7a6335;">اجمع أدلة أكتر عشان تقارن.</p>'; cols.appendChild(p); }
+  else {
+    const pick=document.createElement('div'); pick.className='cmpCol';
+    pick.innerHTML='<h4>اختار مستند للمقارنة:</h4>';
+    for(const id of others){ const b=document.createElement('button'); b.className='wideBtn'; b.style.marginBottom='6px';
+      b.textContent=CLUES[id].icon+' '+CLUES[id].name;
+      b.addEventListener('click', ()=>{ sfx('click'); cols.innerHTML=''; cols.appendChild(mk(leftId)); cols.appendChild(mk(id)); });
+      pick.appendChild(b); }
+    cols.appendChild(pick);
+  }
+  $('cmpWrap').classList.remove('hidden');
+}
+$('cmpClose').addEventListener('click', ()=>{ sfx('click'); $('cmpWrap').classList.add('hidden'); });
+$('docTake').addEventListener('click', ()=>{
+  $('docWrap').classList.add('hidden'); sfx('click');
+  if(docClue){ const id=docClue; docClue=null; addClue(id); addPts(10); afterClue(id); }
+});
+function takeClue(id){
+  if(id==='photo'){ openPhotoPuzzle(); return; }
+  if(id==='cup'){ openDoc('cup', true); return; }
+  openDoc(id, true);
+}
+function afterClue(id){
+  if(id==='paper' && !G.clues.includes('ticket')){ setTimeout(()=>{ addClue('ticket'); toast('🎫 ولقيت في السلة تذكرة قطار كمان!', 3200); }, 900); }
+  if(G.place) showScene(G.place);
+  if(G.obj===1){
+    const n=G.clues.filter(c=>REQ_APT.includes(c)).length;
+    if(n>=REQ_APT.length){ setObj(2); toast('في بصمة على الفنجان محتاجة تحليل... افتح دفتر الأدلة 📓', 3600); sfx('good'); }
+    else setObj(1);
+  }
+}
+
+// ---------- لغز كود الدرج (سنة ميلاد يوسف من شهادة الميلاد) ----------
+let codeIn='';
+function updCodeDisp(){ $('codeDisp').textContent=(codeIn+'﹍﹍﹍﹍').slice(0,4).split('').join(' '); }
+function openCode(){
+  codeIn=''; updCodeDisp();
+  $('codeStatus').textContent = G.clues.includes('birthcert')
+    ? 'تلميح: سنة ميلاد يوسف مكتوبة في شهادة الميلاد 📜 (افتحها من دفتر الأدلة)'
+    : 'لسه محتاج تعرف سنة ميلاد يوسف... دوّر كويس في الشقة الأول';
+  openPanel('codePanel');
+}
+function codeKey(k){
+  sfx('click');
+  if(k==='c'){ codeIn=''; updCodeDisp(); return; }
+  if(codeIn.length>=4) return;
+  codeIn+=k; updCodeDisp();
+  if(codeIn.length===4){
+    if(codeIn==='1988'){ sfx('good'); $('codeStatus').textContent='✅ الدرج اتفتح! فيه محفظة يوسف جواه';
+      setTimeout(()=>{ closePanels(); openDoc('idcard', true); }, 800); }
+    else { sfx('bad'); mistake(); $('codeStatus').textContent='الكود غلط... فكّر: سنة ميلاد يوسف فيها كام؟';
+      codeIn=''; setTimeout(updCodeDisp, 400); }
+  }
+}
+(function buildKeypad(){
+  const el=$('codeKeys'); if(!el) return;
+  ['1','2','3','4','5','6','7','8','9','c','0'].forEach(k=>{
+    const b=document.createElement('button'); b.className='codeKey'+(k==='c'?' clr':'');
+    b.textContent = k==='c' ? 'مسح' : k;
+    b.addEventListener('click', ()=>codeKey(k));
+    el.appendChild(b);
+  });
+})();
+
+// ---------- photo puzzle (4 pieces swap) ----------
+let phOrder=[], phSel=-1;
+function drawPhotoFull(x, W, H){
+  // warehouse gate no.14 at night + يوسف silhouette
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0e1626'); g.addColorStop(1,'#1c1410');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.fillStyle='#3a3430'; x.fillRect(W*0.15,H*0.2,W*0.7,H*0.7); // warehouse
+  x.fillStyle='#241f1c'; x.fillRect(W*0.32,H*0.4,W*0.36,H*0.5); // gate
+  x.strokeStyle='#57492f'; x.lineWidth=3; x.strokeRect(W*0.32,H*0.4,W*0.36,H*0.5);
+  x.fillStyle='#c9a227'; x.font='bold '+(W*0.14)+'px Cairo'; x.textAlign='center';
+  x.fillText('14', W*0.5, H*0.32); // gate number
+  x.fillStyle='#0a0a0a'; x.fillRect(W*0.72,H*0.5,W*0.09,H*0.4); // youssef silhouette
+  x.beginPath(); x.arc(W*0.765,H*0.45,W*0.05,0,Math.PI*2); x.fill();
+  x.fillStyle='#f5efd8'; x.beginPath(); x.arc(W*0.85,H*0.1,W*0.06,0,Math.PI*2); x.fill(); // moon
+  x.fillStyle='#d8cfb8'; x.font=(W*0.05)+'px Cairo';
+  x.fillText('المنتزه - إسكندرية', W*0.5, H*0.96);
+}
+function openPhotoPuzzle(){
+  phOrder=[2,0,3,1]; phSel=-1; $('phStatus').textContent='';
+  const grid=$('photoGrid'); grid.innerHTML='';
+  const off=document.createElement('canvas'); off.width=300; off.height=300;
+  drawPhotoFull(off.getContext('2d'),300,300);
+  for(let i=0;i<4;i++){
+    const pc=document.createElement('canvas'); pc.width=150; pc.height=150; pc.className='phPiece';
+    pc.style.width='100%';
+    grid.appendChild(pc);
+    pc.addEventListener('click', ()=>phTap(i));
+  }
+  renderPhotoPieces(off);
+  openPanel('photoPanel');
+}
+function renderPhotoPieces(off){
+  const grid=$('photoGrid');
+  [...grid.children].forEach((pc,slot)=>{
+    const piece=phOrder[slot];
+    const sx=(piece%2)*150, sy=Math.floor(piece/2)*150;
+    pc.getContext('2d').drawImage(off, sx,sy,150,150, 0,0,150,150);
+  });
+}
+function phTap(slot){
+  sfx('click');
+  const grid=$('photoGrid');
+  if(phSel<0){ phSel=slot; grid.children[slot].classList.add('sel'); return; }
+  if(phSel===slot){ phSel=-1; grid.children[slot].classList.remove('sel'); return; }
+  grid.children[phSel].classList.remove('sel');
+  const t=phOrder[phSel]; phOrder[phSel]=phOrder[slot]; phOrder[slot]=t; phSel=-1;
+  const off=document.createElement('canvas'); off.width=300; off.height=300;
+  drawPhotoFull(off.getContext('2d'),300,300);
+  renderPhotoPieces(off);
+  if(phOrder.every((v,i)=>v===i)){
+    $('phStatus').textContent='✅ الصورة رجعت! يوسف قدام مخزن رقم 14 في المنتزه';
+    sfx('good');
+    setTimeout(()=>{ closePanels(); addClue('photo'); addPts(15); afterClue('photo'); }, 1300);
+  }
+}
+
+// ---------- fingerprint ----------
+function drawPrint(cv){
+  const x=cv.getContext('2d'); x.clearRect(0,0,cv.width,cv.height);
+  x.strokeStyle='#3f6a9e'; x.lineWidth=2;
+  for(let i=0;i<22;i++){ x.beginPath();
+    x.ellipse(110,150, 12+i*4.6, 16+i*5.6, 0, Math.PI*1.05, Math.PI*1.95); x.stroke(); }
+  x.beginPath(); x.arc(110,150,10,0,Math.PI*2); x.stroke();
+}
+const FP_POINTS=[[110,150],[86,120],[140,108]];
+let fpFound=0;
+function openFingerprint(){
+  fpFound=0; FP_POINTS.forEach(p=>p._found=false);
+  $('fpStatus').textContent='';
+  drawPrint($('fpA')); drawPrint($('fpB'));
+  const xa=$('fpA').getContext('2d');
+  FP_POINTS.forEach(p=>{ xa.fillStyle='#c0392b'; xa.beginPath(); xa.arc(p[0],p[1],7,0,Math.PI*2); xa.fill(); });
+  speak('حلل البصمة. لاقي تلات نقط تطابق.');
+  openPanel('fpPanel');
+}
+$('fpB').addEventListener('click', e=>{
+  const r=$('fpB').getBoundingClientRect();
+  const mx=(e.clientX-r.left)*($('fpB').width/r.width), my=(e.clientY-r.top)*($('fpB').height/r.height);
+  const xb=$('fpB').getContext('2d');
+  for(const p of FP_POINTS){ if(p._found) continue;
+    if(Math.hypot(mx-p[0],my-p[1])<14){ p._found=true; fpFound++;
+      xb.fillStyle='#27ae60'; xb.beginPath(); xb.arc(p[0],p[1],8,0,Math.PI*2); xb.fill();
+      sfx('clue'); $('fpStatus').textContent='نقطة تطابق! ('+fpFound+'/3)';
+      if(fpFound>=3){ $('fpStatus').textContent='✅ تحليل كامل: البصمة مش بتاعة يوسف!'; sfx('good');
+        setTimeout(()=>{ closePanels(); addClue('print'); addPts(20); setObj(3);
+          toast('روح قهوة عم رجب من الخريطة'); }, 1400); }
+      return; } }
+  sfx('bad'); mistake(); $('fpStatus').textContent='دي مش نقطة تطابق... بص تاني على البصمة المرجعية';
+});
+// ===== part 4: panels, board, ending, boot, debug =====
+function openPanel(id){ hideToast(); document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+  $(id).classList.remove('hidden'); refreshMusic(); }
+function closePanels(){ document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden')); refreshMusic(); }
+document.querySelectorAll('.closeX').forEach(b=>b.addEventListener('click', ()=>{ sfx('click'); closePanels(); }));
+
+// notebook (clue card opens its document)
+function renderNotes(){
+  const el=$('notesList'); el.innerHTML='';
+  if(!G.clues.length){ el.innerHTML='<p style="color:#8fa3c8;text-align:center;margin-top:30px;">لسه مفيش أدلة... دوّر كويس في كل حتة.</p>'; return; }
+  for(const id of G.clues){ const c=CLUES[id]; if(!c) continue;
+    const d=document.createElement('div'); d.className='clueCard';
+    d.innerHTML='<div class="clueIcon">'+c.icon+'</div><div><h4></h4><p></p></div>';
+    d.querySelector('h4').textContent=c.name; d.querySelector('p').textContent=c.desc;
+    d.addEventListener('click', ()=>{ sfx('click');
+      if(id==='cup'&&G.obj===2){ openFingerprint(); return; }
+      openDoc(id,false); });
+    el.appendChild(d); }
+}
+$('btnNotes').addEventListener('click', ()=>{ sfx('click'); renderNotes(); openPanel('notesPanel'); });
+
+function renderChars(){
+  const el=$('charsList'); el.innerHTML='';
+  for(const id of ['adam','youssef','sharif', ...G.met]){ const c=CHARS[id]; if(!c) continue;
+    const d=document.createElement('div'); d.className='charCard';
+    const h=document.createElement('h4'); h.textContent=c.name;
+    const p=document.createElement('p'); p.textContent=c.desc;
+    d.appendChild(h); d.appendChild(p); el.appendChild(d); }
+}
+function renderCases(){
+  const el=$('casesList'); el.innerHTML='';
+  const cases=[
+    {n:'الفصل الأول: اختفاء الصحفي', st: G.ended?'✅ مكتمل':(G.started?'🟡 جاري':'متاح')},
+    {n:'الفصل التاني: طريق الإسكندرية', st:'🔒 مقفول'},
+    {n:'الفصل التالت: الملف الأحمر', st:'🔒 مقفول'},
+    {n:'الفصل الرابع: اللي فوق الكل', st:'🔒 مقفول'},
+  ];
+  for(const c of cases){ const d=document.createElement('div'); d.className='charCard';
+    const h=document.createElement('h4'); h.textContent=c.n;
+    const p=document.createElement('p'); p.textContent=c.st;
+    d.appendChild(h); d.appendChild(p); el.appendChild(d); }
+}
+
+// board
+const BOARD_LINKS=[
+  {a:'photo', b:'paper', result:'place', msg:'الصورة + ورقة المخازن = يوسف كان بيراقب مخازن المنتزه!'},
+  {a:'mobile', b:'statement', result:'contra', msg:'رسالة "مكانك المعتاد" + أقوال عم رجب = عم رجب بيكدب! في تناقض!'},
+];
+let boardSel=null;
+function renderBoard(){
+  const area=$('boardArea');
+  area.querySelectorAll('.bnode').forEach(n=>n.remove());
+  const svg=$('boardSvg'); svg.innerHTML='';
+  const ids=[...G.clues.filter(c=>CLUES[c]), 'youssef','ragab'];
+  const pos={};
+  ids.forEach((id,i)=>{
+    const col=i%3, row=Math.floor(i/3);
+    pos[id]={x:16+col*30+(row%2?10:0), y:13+row*17};
+    const n=document.createElement('div');
+    const isChar=!!CHARS[id];
+    n.className='bnode'+(isChar?' char':'')+(G.links.some(l=>l.includes(id))?' linked':'');
+    n.style.right=Math.min(pos[id].x,80)+'%'; n.style.top=pos[id].y+'%';
+    n.textContent=(isChar?'👤 ':'')+(isChar?CHARS[id].name:CLUES[id].icon+' '+CLUES[id].name);
+    n.addEventListener('click', ()=>boardTap(id, n));
+    area.appendChild(n); n._pid=id;
+  });
+  for(const l of G.links){ const link=BOARD_LINKS.find(x=>x.result===l); if(!link) continue;
+    if(pos[link.a]&&pos[link.b]) drawLink(pos[link.a],pos[link.b]); }
+  $('boardMsg').textContent = G.links.length>=2 ? 'كل الروابط المهمة اتلقت ✅' : 'اضغط على دليلين عشان تربطهم ببعض';
+}
+function drawLink(p1,p2){
+  const svg=$('boardSvg');
+  const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+  l.setAttribute('x1',(100-Math.min(p1.x,80))+'%'); l.setAttribute('y1',p1.y+'%');
+  l.setAttribute('x2',(100-Math.min(p2.x,80))+'%'); l.setAttribute('y2',p2.y+'%');
+  l.setAttribute('stroke','#7fb84a'); l.setAttribute('stroke-width','3'); l.setAttribute('stroke-dasharray','6 4');
+  svg.appendChild(l);
+}
+function boardTap(id, el){
+  sfx('click');
+  if(!boardSel){ boardSel=id; el.classList.add('sel'); return; }
+  if(boardSel===id){ boardSel=null; el.classList.remove('sel'); return; }
+  const a=boardSel, b=id; boardSel=null;
+  const link=BOARD_LINKS.find(l=>!G.links.includes(l.result) && ((l.a===a&&l.b===b)||(l.a===b&&l.b===a)));
+  if(link){
+    G.links.push(link.result); save(); sfx('good'); addPts(20); addClue(link.result);
+    toast('💡 '+link.msg, 3800); renderBoard();
+    if(G.obj===4 && G.links.length>=2){ setObj(5); setTimeout(()=>{ closePanels(); toast('واجه عم رجب بالتناقض! روح القهوة'); }, 900); }
+  } else { sfx('bad'); mistake(); $('boardMsg').textContent='الدليلين دول مش مربوطين ببعض... فكّر تاني'; renderBoard(); }
+}
+$('btnBoard').addEventListener('click', ()=>{ sfx('click'); boardSel=null; renderBoard(); openPanel('boardPanel'); });
+
+// levels screen
+function renderLevels(){
+  const el=$('levelsList'); el.innerHTML='';
+  const cur=curLevel();
+  let totalStars=0;
+  for(let i=1;i<=7;i++){ const L=LEVELS[i-1];
+    const done=G.levelsDone.includes(i); const isCur=!done && i===cur && !G.ended;
+    const stars=G.levelStars[i]||0; totalStars+=stars;
+    const d=document.createElement('div'); d.className='lvlRow'+(done?' done':'')+(isCur?' cur':'');
+    const st = done ? '★'.repeat(stars)+'☆'.repeat(3-stars) : (isCur?'🟡 جاري':'🔒 مقفول');
+    d.innerHTML='<div class="lvlIcon">'+L.icon+'</div><div class="lvlInfo"><h4></h4><p></p></div><div class="lvlSt">'+st+'</div>';
+    d.querySelector('h4').textContent='المستوى '+i+': '+L.name;
+    d.querySelector('p').textContent=done||isCur ? L.desc : 'كمّل المستويات اللي قبله الأول';
+    el.appendChild(d); }
+  $('levelsTotal').textContent='⭐ النجوم: '+totalStars+'/21 — النقاط: '+G.pts;
+}
+$('btnLevels').addEventListener('click', ()=>{ sfx('click'); renderLevels(); openPanel('levelsPanel'); });
+$('btnLevelsT').addEventListener('click', ()=>{ sfx('click'); renderLevels(); openPanel('levelsPanel'); });
+$('lvlDoneBtn').addEventListener('click', ()=>{ sfx('click'); $('lvlDone').classList.add('hidden'); setTimeout(()=>tryShowLevelDone(0),300); });
+
+// settings
+function bindToggle(id, key, fn){ const el=$(id);
+  el.classList.toggle('on', !!G.settings[key]);
+  el.addEventListener('click', ()=>{ G.settings[key]=!G.settings[key]; el.classList.toggle('on', G.settings[key]);
+    sfx('click'); save(); if(fn) fn(); }); }
+$('btnSave').addEventListener('click', ()=>{ save(); toast('💾 اتحفظ'); sfx('good'); });
+$('btnReset').addEventListener('click', ()=>{ if(confirm('متأكد إنك عايز تمسح تقدمك كله؟')){ try{localStorage.removeItem(SAVE_KEY);}catch(e){} location.reload(); } });
+$('btnMenu').addEventListener('click', ()=>{ sfx('click'); openPanel('settingsPanel'); });
+
+// title
+function showTitle(){ flushLevelQueue(); showScreen('title'); renderCases(); renderChars(); }
+$('btnNew').addEventListener('click', ()=>{ audio(); sfx('click');
+  Object.assign(G,{pts:0,clues:[],met:[],links:[],flags:{},obj:0,ended:false,started:true,place:'hub',levelsDone:[],levelStars:{},mistakes:0,levelStartPts:0});
+  save(); startPlay(true); });
+$('btnContinue').addEventListener('click', ()=>{ audio(); sfx('click');
+  if(!load()){ toast('مفيش تقدم محفوظ لسه'); return; }
+  G.started=true; startPlay(false); });
+$('btnCases').addEventListener('click', ()=>{ sfx('click'); renderCases(); openPanel('casesPanel'); });
+$('btnChars').addEventListener('click', ()=>{ sfx('click'); renderChars(); openPanel('charsPanel'); });
+$('btnSettings').addEventListener('click', ()=>{ sfx('click'); openPanel('settingsPanel'); });
+
+function startPlay(fresh){
+  $('endScreen').classList.add('hidden');
+  $('ptsVal').textContent='⭐ '+G.pts;
+  // ترحيل الحفظ القديم: علّم المستويات اللي قبل الحالي إنها خلصت من غير شاشة تهنئة
+  for(let l=1; l<curLevel(); l++){ if(!G.levelsDone.includes(l)) G.levelsDone.push(l); }
+  setObj(G.obj); renderNotes(); renderChars();
+  goHub();
+  refreshMusic();
+  if(fresh) setTimeout(()=>startDialogue(S_INTRO, ()=>{ addMet('sharif'); toast('اختار عمارة النور من الخريطة ✨'); }), 500);
+}
+addEventListener('resize', ()=>{ if(!$('hub').classList.contains('hidden')) drawHub();
+  if(!$('scene').classList.contains('hidden') && G.place) drawScene(G.place); });
+
+// ending
+function chapterEnd(){
+  completeLevel(7);
+  flushLevelQueue();
+  G.ended=true; save();
+  $('endStars').textContent = G.pts>=110?'⭐⭐⭐':(G.pts>=80?'⭐⭐':'⭐');
+  $('endStory').textContent='آدم وقف قدام القسم وباصص على التقرير. يوسف النجار اتخطف بسبب الملف الأحمر، والخيط بيقود لمخازن المنتزه في إسكندرية. بس العقيد شريف خايف... القضية دي أكبر من صحفي مختفي. بكرة الصبح، قطار إسكندرية.';
+  $('endClues').textContent='🔎 الأدلة اللي جمعتها: '+G.clues.length;
+  $('endPts').textContent='⭐ نقاط التحقيق: '+G.pts;
+  $('endRank').textContent='🏆 تقييم المحقق: '+(G.pts>=110?'محقق عبقري':(G.pts>=80?'محقق شاطر':'محقق مبتدئ'));
+  showScreen('endScreen'); sfx('good');
+}
+$('btnEndMenu').addEventListener('click', ()=>{ sfx('click'); showTitle(); });
+
+// boot
+bindToggle('tglSound','sound',()=>{ if(G.settings.sound) audio(); });
+bindToggle('tglMusic','music',()=>refreshMusic());
+bindToggle('tglVoice','voice',null);
+load();
+if(G.settings.sound) {} // pad starts on first user gesture
+showTitle();
+
+// debug/testing API
+window.TD = {
+  G,
+  start(fresh){ if(fresh){ Object.assign(G,{pts:0,clues:[],met:[],links:[],flags:{},obj:0,ended:false,started:true,place:'hub',levelsDone:[],levelStars:{},mistakes:0,levelStartPts:0}); } startPlay(!!fresh); },
+  skipDialogue(){ if(DLG){ DLG.i=DLG.script.length; showDlgNode(); } },
+  dlgNext(){ $('dlgNext').click(); },
+  dlgStep(){ return DLG?DLG.i:-1; },
+  warp(i){ setObj(i); },
+  goto: gotoPlace,
+  hub: goHub,
+  tapPlace(id){ gotoPlace(id); },
+  clickAction(label){ const b=[...document.querySelectorAll('.actBtn')].find(b=>b.textContent.includes(label)); if(b) b.click(); },
+  open(id){ if(id==='boardPanel'){boardSel=null;renderBoard();} if(id==='notesPanel')renderNotes(); openPanel(id); },
+  closePanels,
+  take(id){ takeClue(id); },
+  doc(id){ openDoc(id,false); },
+  cmp(id){ openCompare(id); },
+  zoomIn(){ document.getElementById('docZmIn').click(); },
+  solvePhoto(){ openPhotoPuzzle(); phOrder=[0,1,2,3]; const off=document.createElement('canvas'); off.width=300; off.height=300;
+    drawPhotoFull(off.getContext('2d'),300,300); renderPhotoPieces(off);
+    $('phStatus').textContent='✅'; closePanels(); addClue('photo'); addPts(15); afterClue('photo'); },
+  solveFp(){ openFingerprint(); FP_POINTS.forEach(p=>p._found=true); fpFound=3; closePanels(); addClue('print'); addPts(20); setObj(3); },
+  openCode, codeKey,
+  solveCode(){ openCode(); ['1','9','8','8'].forEach(codeKey); },
+  levels(){ renderLevels(); openPanel('levelsPanel'); },
+  closeLvlDone(){ $('lvlDone').classList.add('hidden'); lvlQ=[]; },
+  music: ()=>Music.theme,
+};
+})();
+</script>
+</body>
+</html>
